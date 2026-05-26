@@ -1,0 +1,19 @@
+# Entornos virtuales
+venv/
+backend/venv/
+
+# Variables de entorno (credenciales)
+.env
+*.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
