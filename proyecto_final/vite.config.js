@@ -1,12 +1,15 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue'; // <-- Cambiado a Vue
+import fs from 'fs';
 
 export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
-  }
-})
+  plugins: [vue()], // <-- Cambiado a Vue
+  server: {
+    host: 'localhost',
+    port: 5173,
+    https: {
+      key: fs.readFileSync('./certs/localhost.key'),
+      cert: fs.readFileSync('./certs/localhost.crt'),
+    },
+  },
+});
