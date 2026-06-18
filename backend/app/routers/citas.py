@@ -42,6 +42,7 @@ from typing import Optional
 from app.database import get_db
 from app.security import get_current_user
 from app.email_service import send_cita_confirmada
+from app.google_calendar import crear_evento_cita, eliminar_evento_cita, actualizar_evento_cita
 
 router = APIRouter(prefix="/api/citas", tags=["citas"])
 
@@ -61,6 +62,7 @@ class CitaBody(BaseModel):
     hora:     str
     notas:    str = ""
     monto:    float = 0.0
+    id_mecanico: Optional[int] = None
 
 class EstadoBody(BaseModel):
     estado: str
@@ -144,6 +146,42 @@ def _resolve_servicio(conn, nombre: str) -> int:
     return row["id_servicio"]
 
 
+# ── GET /api/citas/disponibilidad ─────────────────────────────────────────────
+
+@router.get("/disponibilidad")
+def get_disponibilidad(fecha: str, authorization: str = Header(None)):
+    """Retorna las horas disponibles para una fecha dada (08:00 a 17:00)."""
+    # Se omiten horas ya agendadas que no estén canceladas
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT hora FROM cita WHERE fecha = %s AND estado != 'cancelada'",
+            (fecha,)
+        )
+        rows = cur.fetchall()
+        
+    horas_ocupadas = set(_format_hora(r["hora"]) for r in rows if r["hora"])
+    
+    todas_las_horas = [
+        "08:00", "09:00", "10:00", "11:00", 
+        "12:00", "13:00", "14:00", "15:00", 
+        "16:00", "17:00"
+    ]
+    
+    disponibles = [h for h in todas_las_horas if h not in horas_ocupadas]
+    return disponibles
+
+@router.get("/mecanicos")
+def get_mecanicos_disponibles(authorization: str = Header(None)):
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_mecanico, nombre, especialidad FROM mecanico WHERE disponible = 1")
+        rows = cur.fetchall()
+    return rows
+
+
+
+
 # ── GET /api/citas ────────────────────────────────────────────────────────────
 
 @router.get("")
@@ -187,13 +225,13 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
         vid = _resolve_or_create_vehiculo(conn, uid, body)
         sid = _resolve_servicio(conn, body.servicio)   # [CIT-3] lanza 400 si no existe
 
-        # [CIT-4] Mecánico disponible — NULL si no hay ninguno (columna nullable)
-        cur = conn.cursor()
-        cur.execute(
-            "SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1"
-        )
-        mec = cur.fetchone()
-        mid = mec["id_mecanico"] if mec else None   # NULL es preferible a FK inválida
+        # [CIT-4] Mecánico
+        mid = body.id_mecanico
+        if not mid:
+            cur = conn.cursor()
+            cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
+            mec = cur.fetchone()
+            mid = mec["id_mecanico"] if mec else None
 
         cur.execute(
             """INSERT INTO cita
@@ -232,6 +270,13 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
         cita["hora"],
     )
 
+    # Integración con Google Calendar
+    try:
+        crear_evento_cita(cita)
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Fallo al crear el evento de Google Calendar de forma silenciosa: {e}")
+
     return {"ok": True, "cita": cita}
 
 
@@ -256,6 +301,15 @@ def update_estado(cita_id: int, body: EstadoBody, authorization: str = Header(No
 
     with get_db() as conn:
         cur = conn.cursor()
+        # Recuperar cita para Google Calendar
+        cur.execute("""
+            SELECT c.fecha, c.hora, u.nombre AS cliente
+            FROM cita c
+            LEFT JOIN usuario u ON c.id_usuario = u.id_usuario
+            WHERE c.id_cita = %s
+        """, (cita_id,))
+        cita_data = cur.fetchone()
+
         if role == "admin":
             cur.execute(
                 "UPDATE cita SET estado = %s WHERE id_cita = %s",
@@ -268,6 +322,61 @@ def update_estado(cita_id: int, body: EstadoBody, authorization: str = Header(No
             )
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Cita no encontrada o sin permiso")
+            
+        if body.estado == "cancelada" and cita_data:
+            cita_data = _format_cita(cita_data)
+            try:
+                eliminar_evento_cita(cita_data)
+            except:
+                pass
+
+    return {"ok": True}
+
+
+# ── PUT /api/citas/{id} (Editar Cita) ─────────────────────────────────────────
+
+@router.put("/{cita_id}")
+def editar_cita(cita_id: int, body: CitaBody, authorization: str = Header(None)):
+    payload = get_current_user(authorization)
+    uid  = payload["sub"]
+    role = payload.get("role")
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        # Verificar pertenencia y obtener datos antiguos para Google Calendar
+        cur.execute("""
+            SELECT c.fecha, c.hora, u.nombre AS cliente, c.id_usuario
+            FROM cita c
+            LEFT JOIN usuario u ON c.id_usuario = u.id_usuario
+            WHERE c.id_cita = %s
+        """, (cita_id,))
+        cita_antigua = cur.fetchone()
+        
+        if not cita_antigua or (role != "admin" and cita_antigua["id_usuario"] != uid):
+            raise HTTPException(status_code=404, detail="Cita no encontrada o sin permiso")
+
+        vid = _resolve_or_create_vehiculo(conn, uid if role != "admin" else cita_antigua["id_usuario"], body)
+        sid = _resolve_servicio(conn, body.servicio)
+        mid = body.id_mecanico
+
+        cur.execute(
+            """UPDATE cita 
+               SET fecha=%s, hora=%s, notas=%s, monto=%s, id_vehiculo=%s, id_servicio=%s, id_mecanico=%s
+               WHERE id_cita=%s""",
+            (body.fecha, body.hora, body.notas, body.monto, vid, sid, mid, cita_id)
+        )
+        
+        cita_antigua = _format_cita(cita_antigua)
+        cita_nueva = {
+            "cliente": cita_antigua["cliente"],
+            "fecha": body.fecha,
+            "hora": body.hora,
+            "servicio": body.servicio
+        }
+        try:
+            actualizar_evento_cita(cita_antigua, cita_nueva)
+        except:
+            pass
 
     return {"ok": True}
 
@@ -285,16 +394,29 @@ def eliminar_cita(cita_id: int, authorization: str = Header(None)):
 
         # [CIT-6] Verificar existencia y pertenencia ANTES de borrar historial
         if role == "admin":
-            cur.execute("SELECT id_cita FROM cita WHERE id_cita = %s", (cita_id,))
+            cur.execute("""
+                SELECT c.id_cita, c.fecha, c.hora, u.nombre AS cliente 
+                FROM cita c LEFT JOIN usuario u ON c.id_usuario = u.id_usuario 
+                WHERE c.id_cita = %s
+            """, (cita_id,))
         else:
-            cur.execute(
-                "SELECT id_cita FROM cita WHERE id_cita = %s AND id_usuario = %s",
-                (cita_id, uid)
-            )
-        if not cur.fetchone():
+            cur.execute("""
+                SELECT c.id_cita, c.fecha, c.hora, u.nombre AS cliente 
+                FROM cita c LEFT JOIN usuario u ON c.id_usuario = u.id_usuario 
+                WHERE c.id_cita = %s AND c.id_usuario = %s
+            """, (cita_id, uid))
+            
+        cita_data = cur.fetchone()
+        if not cita_data:
             raise HTTPException(status_code=404, detail="Cita no encontrada o sin permiso")
 
         cur.execute("DELETE FROM historial_cita WHERE id_cita = %s", (cita_id,))
         cur.execute("DELETE FROM cita WHERE id_cita = %s", (cita_id,))
+        
+        cita_data = _format_cita(cita_data)
+        try:
+            eliminar_evento_cita(cita_data)
+        except:
+            pass
 
     return {"ok": True}

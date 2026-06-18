@@ -1,310 +1,270 @@
 <template>
   <main class="agendar-root">
+    
+    <!-- Ambient glow & grid -->
+    <div class="ambient-glow fixed-glow"></div>
     <div class="bg-grid"></div>
-    <div class="bg-orb bg-orb-1"></div>
-    <div class="bg-orb bg-orb-2"></div>
 
     <!-- Hero -->
-    <div class="agendar-hero">
-      <p class="hero-eyebrow">Reserva tu servicio</p>
-      <h1 class="hero-title">Agendar <span>Cita</span></h1>
-      <p class="hero-sub">Completa el formulario para reservar tu servicio</p>
+    <div class="agendar-hero observe-me">
+      <div class="hero-eyebrow">
+        <span class="eyebrow-line"></span>
+        INICIALIZACIÓN DE PROTOCOLO
+        <span class="eyebrow-line"></span>
+      </div>
+      <h1 class="hero-title">PROGRAMACIÓN DE<br /><span>SERVICIOS</span></h1>
+      <p class="hero-sub">Complete la secuencia para asegurar su espacio en el hangar de mantenimiento.</p>
     </div>
 
-    <div class="agendar-wrapper">
-    <div class="agendar-layout">
+    <div class="agendar-wrapper observe-me" style="transition-delay: 0.2s;">
+      <div class="agendar-layout matte-card">
 
-      <!-- Steps sidebar -->
-      <div class="steps-sidebar">
-        <div class="steps-track">
-          <div
-            v-for="(step, idx) in steps" :key="idx"
-            :class="['step-node', {
-              active: currentStep === idx + 1,
-              completed: currentStep > idx + 1
-            }]"
-          >
-            <div class="step-bubble">
-              <transition name="bubble-swap" mode="out-in">
-                <svg v-if="currentStep > idx + 1" key="check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                <span v-else key="num">{{ idx + 1 }}</span>
-              </transition>
-            </div>
-            <div class="step-info">
-              <span class="step-name">{{ step.label }}</span>
-              <span class="step-desc">{{ step.desc }}</span>
-            </div>
-            <div v-if="idx < steps.length - 1" class="step-connector">
-              <div class="connector-fill" :class="{ filled: currentStep > idx + 1 }"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Price preview -->
-        <div v-if="selectedService" class="price-preview">
-          <p class="pp-label">Precio estimado</p>
-          <p class="pp-value">${{ selectedService.precio }}</p>
-          <p class="pp-service">{{ selectedService.name }}</p>
-        </div>
-      </div>
-
-      <!-- Form area -->
-      <div class="form-area">
-
-        <!-- Progress bar -->
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: ((currentStep - 1) / (steps.length - 1) * 100) + '%' }"></div>
-          <span class="progress-label">Paso {{ currentStep }} de {{ steps.length }}</span>
-        </div>
-
-        <transition name="step-slide" mode="out-in">
-
-          <!-- STEP 1: Servicio -->
-          <div v-if="currentStep === 1" key="s1" class="step-panel">
-            <div class="step-panel-header">
-              <div class="sph-num">01</div>
-              <div>
-                <h2 class="sph-title">Selecciona el <span>Servicio</span></h2>
-                <p class="sph-sub">Elige el servicio que necesitas para tu vehículo</p>
+        <!-- Steps sidebar -->
+        <div class="steps-sidebar">
+          <div class="steps-track">
+            <div
+              v-for="(step, idx) in steps" :key="idx"
+              :class="['step-node', {
+                active: currentStep === idx + 1,
+                completed: currentStep > idx + 1
+              }]"
+            >
+              <div class="step-bubble">
+                <transition name="bubble-swap" mode="out-in">
+                  <span v-if="currentStep > idx + 1" key="check" class="check-mark">✓</span>
+                  <span v-else key="num">0{{ idx + 1 }}</span>
+                </transition>
               </div>
-            </div>
-
-            <!-- Service cards grid -->
-            <div class="services-grid">
-              <button
-                v-for="(s, i) in serviciosData" :key="s.name"
-                :class="['service-card', { selected: form.servicio === s.name }]"
-                :style="`--i:${i}`"
-                @click="form.servicio = s.name"
-              >
-                <div class="sc-icon">{{ s.icon }}</div>
-                <div class="sc-info">
-                  <span class="sc-name">{{ s.name }}</span>
-                  <span class="sc-desc">{{ s.desc }}</span>
-                </div>
-                <span class="sc-price">${{ s.precio }}</span>
-                <div class="sc-check">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-              </button>
-            </div>
-
-            <div class="field-group" style="margin-top:1.2rem">
-              <span class="field-label">Notas adicionales</span>
-              <div class="textarea-wrap">
-                <textarea v-model="form.notas" rows="3" placeholder="Describe el problema o solicitud especial..."></textarea>
+              <div class="step-info">
+                <span class="step-name">{{ step.label }}</span>
+                <span class="step-desc">{{ step.desc }}</span>
+              </div>
+              <div v-if="idx < steps.length - 1" class="step-connector">
+                <div class="connector-fill" :class="{ filled: currentStep > idx + 1 }"></div>
               </div>
             </div>
           </div>
 
-          <!-- STEP 2: Vehículo -->
-          <div v-else-if="currentStep === 2" key="s2" class="step-panel">
-            <div class="step-panel-header">
-              <div class="sph-num">02</div>
-              <div>
-                <h2 class="sph-title">Datos del <span>Vehículo</span></h2>
-                <p class="sph-sub">Ingresa la información de tu vehículo</p>
+          <!-- Price preview -->
+          <div v-if="selectedService" class="price-preview">
+            <div class="pp-glitch-border"></div>
+            <p class="pp-label">VALOR ESTIMADO</p>
+            <p class="pp-value">${{ selectedService.precio }} COP</p>
+            <p class="pp-service">{{ selectedService.name }}</p>
+          </div>
+        </div>
+
+        <!-- Form area -->
+        <div class="form-area">
+
+          <!-- Progress bar -->
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: ((currentStep - 1) / (steps.length - 1) * 100) + '%' }"></div>
+            <span class="progress-label">Fase 0{{ currentStep }} // 0{{ steps.length }}</span>
+          </div>
+
+          <transition name="step-slide" mode="out-in">
+
+            <!-- STEP 1: Servicio -->
+            <div v-if="currentStep === 1" key="s1" class="step-panel">
+              <div class="step-panel-header">
+                <div class="sph-num">01</div>
+                <div>
+                  <h2 class="sph-title">SELECCIÓN DE <span>MÓDULO</span></h2>
+                  <p class="sph-sub">Determine el requerimiento técnico necesario.</p>
+                </div>
+              </div>
+
+              <!-- Service cards grid -->
+              <div class="services-grid">
+                <button
+                  v-for="(s, i) in serviciosData" :key="s.name"
+                  :class="['service-opt-card', { selected: form.servicio === s.name }]"
+                  :style="`animation-delay: ${i * 0.05}s`"
+                  @click="form.servicio = s.name"
+                >
+                  <div class="sc-icon">{{ s.icon }}</div>
+                  <div class="sc-info">
+                    <span class="sc-name">{{ s.name }}</span>
+                    <span class="sc-desc">{{ s.desc }}</span>
+                  </div>
+                  <span class="sc-price">${{ s.precio }} COP</span>
+                </button>
+              </div>
+
+              <div class="form-group" style="margin-top:2rem">
+                <label>ESPECIFICACIONES ADICIONALES</label>
+                <textarea v-model="form.notas" rows="3" placeholder="Describa síntomas inusuales, ruidos o comportamientos erráticos de la máquina..."></textarea>
               </div>
             </div>
 
-            <div class="fields-grid">
-              <div class="field-group">
-                <span class="field-label">Marca <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  <input v-model="form.marca" type="text" placeholder="Toyota, Chevrolet..." />
+            <!-- STEP 2: Vehículo -->
+            <div v-else-if="currentStep === 2" key="s2" class="step-panel">
+              <div class="step-panel-header">
+                <div class="sph-num">02</div>
+                <div>
+                  <h2 class="sph-title">DATOS DE LA <span>MÁQUINA</span></h2>
+                  <p class="sph-sub">Ingrese la telemetría básica del vehículo.</p>
                 </div>
               </div>
-              <div class="field-group">
-                <span class="field-label">Modelo <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                  <input v-model="form.modelo" type="text" placeholder="Corolla, Spark..." />
+
+              <div class="fields-grid">
+                <div class="form-group">
+                  <label>FABRICANTE <span class="req">*</span></label>
+                  <input v-model="form.marca" type="text" placeholder="Ej: Toyota, Ford" />
                 </div>
-              </div>
-              <div class="field-group">
-                <span class="field-label">Año <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  <input v-model="form.anio" type="number" placeholder="2020" min="1990" :max="new Date().getFullYear() + 1" />
+                <div class="form-group">
+                  <label>MODELO <span class="req">*</span></label>
+                  <input v-model="form.modelo" type="text" placeholder="Ej: Mustang, Corolla" />
                 </div>
-              </div>
-              <div class="field-group">
-                <span class="field-label">Placa <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <div class="form-group">
+                  <label>AÑO DE ENSAMBLAJE <span class="req">*</span></label>
+                  <input v-model="form.anio" type="number" placeholder="YYYY" min="1950" :max="new Date().getFullYear() + 1" />
+                </div>
+                <div class="form-group">
+                  <label>MATRÍCULA <span class="req">*</span></label>
                   <input v-model="form.placa" type="text" placeholder="ABC-123" style="text-transform:uppercase" />
                 </div>
-              </div>
-              <div class="field-group fields-span">
-                <span class="field-label">Color del vehículo</span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-                  <input v-model="form.color" type="text" placeholder="Blanco, Negro, Rojo..." />
+                <div class="form-group fields-span">
+                  <label>COLOR EXTERIOR</label>
+                  <input v-model="form.color" type="text" placeholder="Ej: Negro Mate, Rojo Metálico" />
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- STEP 3: Fecha -->
-          <div v-else-if="currentStep === 3" key="s3" class="step-panel">
-            <div class="step-panel-header">
-              <div class="sph-num">03</div>
-              <div>
-                <h2 class="sph-title">Fecha y <span>Horario</span></h2>
-                <p class="sph-sub">Selecciona cuándo quieres tu cita</p>
+            <!-- STEP 3: Fecha -->
+            <div v-else-if="currentStep === 3" key="s3" class="step-panel">
+              <div class="step-panel-header">
+                <div class="sph-num">03</div>
+                <div>
+                  <h2 class="sph-title">HORARIO DE <span>RECEPCIÓN</span></h2>
+                  <p class="sph-sub">Establezca el momento de ingreso a nuestras instalaciones.</p>
+                </div>
               </div>
-            </div>
 
-            <div class="fields-grid">
-              <div class="field-group">
-                <span class="field-label">Fecha <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <div class="fields-grid">
+                <div class="form-group">
+                  <label>FECHA OPERATIVA <span class="req">*</span></label>
                   <input v-model="form.fecha" type="date" :min="minDate" />
                 </div>
-              </div>
-              <div class="field-group">
-                <span class="field-label">Hora <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <select v-model="form.hora">
-                    <option value="">Seleccionar hora...</option>
+                <div class="form-group">
+                  <label>VENTANA DE TIEMPO <span class="req">*</span></label>
+                  <select v-model="form.hora" :disabled="!form.fecha">
+                    <option value="">Seleccionar horario...</option>
                     <option v-for="h in horas" :key="h" :value="h">{{ h }}</option>
                   </select>
                 </div>
-              </div>
 
-              <!-- Time slots visual -->
-              <div class="field-group fields-span">
-                <span class="field-label">Horarios disponibles</span>
-                <div class="time-slots">
-                  <button
-                    v-for="h in horas" :key="h"
-                    :class="['time-slot', { selected: form.hora === h }]"
-                    @click="form.hora = h"
-                  >{{ h }}</button>
+                <div class="form-group fields-span">
+                  <label>MECÁNICO ASIGNADO</label>
+                  <select v-model="form.id_mecanico">
+                    <option value="">Asignación Automática</option>
+                    <option v-for="m in mecanicos" :key="m.id_mecanico" :value="m.id_mecanico">{{ m.nombre }} - {{ m.especialidad }}</option>
+                  </select>
                 </div>
-              </div>
 
-              <div class="field-group fields-span">
-                <span class="field-label">Nombre del cliente <span class="req">*</span></span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                  <input v-model="form.cliente" type="text" placeholder="Tu nombre completo" />
+                <div class="form-group fields-span" style="margin-top:-0.5rem">
+                  <div class="time-slots">
+                    <button
+                      v-for="h in horas" :key="h"
+                      :class="['time-slot', { selected: form.hora === h }]"
+                      @click="form.hora = h"
+                    >
+                      {{ h }}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div class="field-group fields-span">
-                <span class="field-label">Teléfono de contacto</span>
-                <div class="input-wrap">
-                  <svg class="input-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                  <input v-model="form.telefono" type="tel" placeholder="+57 300 000 0000" />
+
+                <div class="form-group fields-span">
+                  <label>IDENTIFICADOR DE USUARIO <span class="req">*</span></label>
+                  <input v-model="form.cliente" type="text" placeholder="Nombre completo" />
+                </div>
+                <div class="form-group fields-span">
+                  <label>CANAL DE COMUNICACIÓN</label>
+                  <input v-model="form.telefono" type="tel" placeholder="+1 234 567 8900" />
                 </div>
               </div>
             </div>
+
+            <!-- STEP 4: Confirmar -->
+            <div v-else-if="currentStep === 4" key="s4" class="step-panel">
+              <div class="step-panel-header">
+                <div class="sph-num">04</div>
+                <div>
+                  <h2 class="sph-title">REVISIÓN DE <span>PARÁMETROS</span></h2>
+                  <p class="sph-sub">Verifique los datos antes de ejecutar la solicitud.</p>
+                </div>
+              </div>
+
+              <div class="summary-grid">
+                <div class="summary-section matte-card-sub">
+                  <p class="ss-title">MÓDULO TÉCNICO</p>
+                  <div class="ss-row"><span>TIPO</span><strong>{{ form.servicio }}</strong></div>
+                  <div class="ss-row" v-if="form.notas"><span>ESPECIFICACIONES</span><strong>{{ form.notas }}</strong></div>
+                </div>
+
+                <div class="summary-section matte-card-sub">
+                  <p class="ss-title">MÁQUINA</p>
+                  <div class="ss-row"><span>ID VINCULADA</span><strong>{{ form.marca }} {{ form.modelo }} {{ form.anio }}</strong></div>
+                  <div class="ss-row"><span>MATRÍCULA</span><strong>{{ form.placa }}</strong></div>
+                  <div class="ss-row" v-if="form.color"><span>PIGMENTO</span><strong>{{ form.color }}</strong></div>
+                </div>
+
+                <div class="summary-section matte-card-sub">
+                  <p class="ss-title">RECEPCIÓN & ENLACE</p>
+                  <div class="ss-row"><span>FECHA</span><strong>{{ form.fecha }}</strong></div>
+                  <div class="ss-row"><span>HORA</span><strong>{{ form.hora }}</strong></div>
+                  <div class="ss-row"><span>OPERADOR</span><strong>{{ form.cliente }}</strong></div>
+                </div>
+              </div>
+
+              <div class="total-box">
+                <div class="total-left">
+                  <span class="total-label">COSTE ESTIMADO DE OPERACIÓN</span>
+                  <span class="total-note">Sujeto a variaciones post-diagnóstico.</span>
+                </div>
+                <div class="total-price">${{ selectedService?.precio || '—' }} COP</div>
+              </div>
+            </div>
+
+          </transition>
+
+          <!-- Actions -->
+          <div class="step-actions">
+            <button class="btn btn-ghost" @click="currentStep--" :disabled="currentStep === 1">
+              ← Retroceder
+            </button>
+            <button v-if="currentStep < 4" class="btn btn-primary" @click="nextStep">
+              Siguiente Fase →
+            </button>
+            <button v-else class="btn btn-primary btn-confirm" @click="submitForm" :disabled="citasStore.loading">
+              {{ citasStore.loading ? 'Procesando...' : 'Ejecutar Solicitud' }}
+            </button>
           </div>
 
-          <!-- STEP 4: Confirmar -->
-          <div v-else-if="currentStep === 4" key="s4" class="step-panel">
-            <div class="step-panel-header">
-              <div class="sph-num">04</div>
-              <div>
-                <h2 class="sph-title">Confirmar <span>Cita</span></h2>
-                <p class="sph-sub">Revisa los detalles antes de confirmar</p>
-              </div>
-            </div>
-
-            <div class="summary-grid">
-              <div class="summary-section">
-                <p class="ss-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-                  Servicio
-                </p>
-                <div class="ss-row">
-                  <span>Tipo</span><strong>{{ form.servicio }}</strong>
-                </div>
-                <div class="ss-row" v-if="form.notas">
-                  <span>Notas</span><strong>{{ form.notas }}</strong>
-                </div>
-              </div>
-
-              <div class="summary-section">
-                <p class="ss-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  Vehículo
-                </p>
-                <div class="ss-row"><span>Vehículo</span><strong>{{ form.marca }} {{ form.modelo }} {{ form.anio }}</strong></div>
-                <div class="ss-row"><span>Placa</span><strong>{{ form.placa }}</strong></div>
-                <div class="ss-row" v-if="form.color"><span>Color</span><strong>{{ form.color }}</strong></div>
-              </div>
-
-              <div class="summary-section">
-                <p class="ss-title">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                  Fecha & Contacto
-                </p>
-                <div class="ss-row"><span>Fecha</span><strong>{{ form.fecha }}</strong></div>
-                <div class="ss-row"><span>Hora</span><strong>{{ form.hora }}</strong></div>
-                <div class="ss-row"><span>Cliente</span><strong>{{ form.cliente }}</strong></div>
-              </div>
-            </div>
-
-            <div class="total-box">
-              <div class="total-left">
-                <span class="total-label">Precio estimado del servicio</span>
-                <span class="total-note">* El precio final puede variar según evaluación</span>
-              </div>
-              <div class="total-price">${{ selectedService?.precio || '—' }}</div>
-            </div>
-          </div>
-
-        </transition>
-
-        <!-- Actions -->
-        <div class="step-actions">
-          <button class="btn-prev" @click="currentStep--" :disabled="currentStep === 1">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            Anterior
-          </button>
-          <button v-if="currentStep < 4" class="btn-next" @click="nextStep">
-            Siguiente
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </button>
-          <button v-else class="btn-confirm" @click="submitForm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Confirmar Cita
-          </button>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- Success Modal -->
     <transition name="modal-anim">
       <div v-if="showSuccess" class="success-overlay" @click.self="showSuccess = false">
-        <div class="success-modal">
+        <div class="success-modal matte-card">
           <div class="success-ring">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            ✓
           </div>
-          <h2 class="sm-title">¡Cita <span>Agendada!</span></h2>
-          <p class="sm-sub">Tu cita ha sido registrada exitosamente.</p>
+          <h2 class="sm-title">SECUENCIA <span>COMPLETADA</span></h2>
+          <p class="sm-sub">Su solicitud ha sido procesada e ingresada en el sistema.</p>
+          
           <div class="sm-details">
-            <div class="sm-row">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
-              <span>{{ form.servicio }}</span>
-            </div>
-            <div class="sm-row">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <span>{{ form.fecha }} · {{ form.hora }}</span>
-            </div>
-            <div class="sm-row">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-              <span>{{ form.marca }} {{ form.modelo }}</span>
-            </div>
+            <div class="sm-row"><span>MÓDULO:</span> <strong>{{ form.servicio }}</strong></div>
+            <div class="sm-row"><span>HORARIO:</span> <strong>{{ form.fecha }} // {{ form.hora }}</strong></div>
+            <div class="sm-row"><span>MÁQUINA:</span> <strong>{{ form.marca }} {{ form.modelo }}</strong></div>
           </div>
+          
           <div class="sm-actions">
-            <router-link to="/" class="btn-sm-ghost">Ir al inicio</router-link>
-            <router-link to="/perfil" class="btn-sm-primary">Ver mis citas</router-link>
+            <router-link to="/" class="btn btn-ghost">Retornar al Sistema</router-link>
+            <router-link to="/perfil?tab=citas" class="btn btn-primary">Monitorear Estado</router-link>
           </div>
         </div>
       </div>
@@ -313,11 +273,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useCitasStore } from '../stores/citas'
 import { useToast } from '../stores/toast'
 import { storeToRefs } from 'pinia'
+import { API_BASE_URL } from '../config/api'
 
 const auth = useAuthStore()
 const citasStore = useCitasStore()
@@ -326,38 +287,79 @@ const { user } = storeToRefs(auth)
 
 const currentStep = ref(1)
 const showSuccess = ref(false)
+const observer = ref(null)
+
+onMounted(async () => {
+  observer.value = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+      }
+    })
+  }, { threshold: 0.1 })
+
+  document.querySelectorAll('.observe-me').forEach(el => observer.value.observe(el))
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/citas/mecanicos`)
+    if(res.ok) mecanicos.value = await res.json()
+  } catch(e) {
+    mecanicos.value = [
+      {id_mecanico: 1, nombre: "Juan Perez (Demo)", especialidad: "General"},
+      {id_mecanico: 2, nombre: "Carlos Diaz (Demo)", especialidad: "Transmisiones"}
+    ]
+  }
+})
+
+onUnmounted(() => {
+  if (observer.value) observer.value.disconnect()
+})
 
 const steps = [
-  { label: 'Servicio',  desc: 'Tipo de servicio' },
-  { label: 'Vehículo', desc: 'Datos del auto' },
-  { label: 'Fecha',    desc: 'Horario' },
-  { label: 'Confirmar', desc: 'Revisar y enviar' },
+  { label: 'Requerimiento',  desc: 'Tipo de servicio' },
+  { label: 'Telemetría',     desc: 'Datos de máquina' },
+  { label: 'Cronograma',     desc: 'Fecha y hora' },
+  { label: 'Validación',     desc: 'Verificación' },
 ]
 
 const form = reactive({
   servicio: '', notas: '',
   marca: '', modelo: '', anio: '', placa: '', color: '',
-  fecha: '', hora: '', cliente: user.value?.name || '', telefono: user.value?.phone || '',
+  fecha: '', hora: '', cliente: user.value?.nombre || '', telefono: user.value?.phone || '',
+  id_mecanico: ''
 })
 
 const serviciosData = [
-  { icon:'🛢️', name:'Cambio de Aceite',         precio:45,  desc:'Aceite y filtro de primera calidad.' },
-  { icon:'⚙️', name:'Alineación y Balanceo',    precio:60,  desc:'Computarizada en las 4 ruedas.' },
-  { icon:'🔴', name:'Frenos Completos',          precio:180, desc:'Pastillas, discos y revisión.' },
-  { icon:'💻', name:'Diagnóstico Computarizado', precio:50,  desc:'Escaneo del sistema electrónico.' },
-  { icon:'🔋', name:'Sistema Eléctrico',         precio:80,  desc:'Diagnóstico y reparación.' },
-  { icon:'🔧', name:'Mantenimiento General',     precio:120, desc:'Revisión completa, 40 puntos.' },
+  { icon:'🛢️', name:'Mantenimiento Preventivo PRO',         precio:'180.000',  desc:'Aceite sintético y filtros OEM.' },
+  { icon:'💻', name:'Diagnóstico Computarizado Avanzado',           precio:'90.000',  desc:'Escáner OBD2 y diagnóstico de sensores.' },
+  { icon:'🛑', name:'Actualización a Frenos Cerámicos',              precio:'350.000', desc:'Frenos de alto desempeño y rectificado.' },
+  { icon:'⚡', name:'Sincronización Electrónica',                 precio:'250.000',  desc:'Bujías iridio y limpieza inyectores.' },
+  { icon:'📐', name:'Alineación y Balanceo Láser 3D',          precio:'120.000',  desc:'Alineación láser 3D de 4 ruedas.' },
+  { icon:'⚙️', name:'Mantenimiento Transmisión Automática',        precio:'450.000', desc:'Diálisis completa y fluido ATF.' },
+  { icon:'✨', name:'Detailing y Recubrimiento Cerámico',        precio:'800.000', desc:'Corrección y protección cerámica 9H.' },
+  { icon:'🚗', name:'Restauración de Suspensión Deportiva',        precio:'650.000', desc:'Amortiguadores y bujes nuevos.' },
 ]
 
-const servicios = serviciosData.map(s => s.name)
 const selectedService = computed(() => serviciosData.find(s => s.name === form.servicio))
-const horas = ['08:00','09:00','10:00','11:00','12:00','14:00','15:00','16:00','17:00']
+const horas = ref([])
+const mecanicos = ref([])
 const minDate = new Date().toISOString().split('T')[0]
 
+watch(() => form.fecha, async (newFecha) => {
+  if(!newFecha) { horas.value = []; return }
+  try {
+    const res = await fetch(`${API_BASE_URL}/citas/disponibilidad?fecha=${newFecha}`)
+    if(res.ok) horas.value = await res.json()
+  } catch(e) {
+    // FALLBACK BYPASS DEMO
+    horas.value = ['08:00', '10:00', '14:00', '16:00']
+  }
+})
+
 function nextStep() {
-  if (currentStep.value === 1 && !form.servicio) { toast.error('Selecciona un servicio'); return }
-  if (currentStep.value === 2 && (!form.marca || !form.modelo || !form.anio || !form.placa)) { toast.error('Completa los datos del vehículo'); return }
-  if (currentStep.value === 3 && (!form.fecha || !form.hora || !form.cliente)) { toast.error('Completa la fecha, hora y nombre'); return }
+  if (currentStep.value === 1 && !form.servicio) { toast.error('Seleccione un módulo técnico.'); return }
+  if (currentStep.value === 2 && (!form.marca || !form.modelo || !form.anio || !form.placa)) { toast.error('Ingrese los datos requeridos de la máquina.'); return }
+  if (currentStep.value === 3 && (!form.fecha || !form.hora || !form.cliente)) { toast.error('Establezca el cronograma y operador.'); return }
   currentStep.value++
 }
 
@@ -374,388 +376,263 @@ async function submitForm() {
     fecha:    form.fecha,
     hora:     form.hora,
     notas:    form.notas,
-    monto:    selectedService.value?.precio || 0,
+    monto:    parseInt(selectedService.value?.precio.replace('.', '')) || 0,
+    id_mecanico: form.id_mecanico ? parseInt(form.id_mecanico) : null,
   })
   if (result.ok) {
     showSuccess.value = true
   } else {
-    toast.error(result.error || 'Error al agendar cita')
+    toast.error(result.error || 'Error en la solicitud.')
   }
 }
 </script>
 
 <style scoped>
+/* AMBIENT & BASE */
 .agendar-root {
   min-height: 100vh;
-  background: #060606;
+  padding-top: var(--nav-height);
   position: relative;
   overflow: hidden;
-  font-family: 'Inter', sans-serif;
-  padding-bottom: 5rem;
+}
+
+.fixed-glow {
+  position: fixed;
+  top: 10%; right: 10%;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(230,0,35,0.06) 0%, transparent 60%);
+  z-index: 0;
+  pointer-events: none;
 }
 .bg-grid {
   position: fixed; inset: 0; z-index: 0;
   background-image:
-    linear-gradient(rgba(220,38,38,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220,38,38,0.03) 1px, transparent 1px);
-  background-size: 44px 44px; pointer-events: none;
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px; pointer-events: none;
 }
-.bg-orb { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; }
-.bg-orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(220,38,38,0.07) 0%, transparent 70%); top: -100px; right: -100px; animation: drift 15s ease-in-out infinite; }
-.bg-orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(220,38,38,0.05) 0%, transparent 70%); bottom: 0; left: -100px; animation: drift 20s ease-in-out infinite reverse; }
-@keyframes drift { 0%,100%{transform:translateY(0)} 50%{transform:translateY(30px)} }
 
-/* Hero */
+/* ANIMATIONS */
+.observe-me {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.observe-me.is-visible { opacity: 1; transform: translateY(0); }
+
+/* HERO */
 .agendar-hero {
   position: relative; z-index: 1;
-  max-width: 1140px; margin: 0 auto;
-  padding: calc(var(--nav-height) + 2.5rem) 2rem 1.5rem;
-  animation: heroIn 0.5s ease both;
+  text-align: center;
+  padding: 4rem 2rem 2rem;
+  max-width: 900px;
+  margin: 0 auto;
 }
-@keyframes heroIn { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
-.hero-eyebrow { font-size: 0.62rem; font-weight: 700; color: rgba(220,38,38,0.7); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 0.4rem; }
-.hero-title { font-family: 'Montserrat', sans-serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; color: white; line-height: 1; letter-spacing: -1px; margin-bottom: 0.5rem; }
-.hero-title span { color: #dc2626; }
-.hero-sub { font-size: 0.85rem; color: rgba(255,255,255,0.35); }
+.hero-eyebrow {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 4px; color: var(--primary); margin-bottom: 1rem;
+}
+.eyebrow-line { width: 40px; height: 1px; background: rgba(230,0,35,0.5); }
+.hero-title {
+  font-family: 'Space Grotesk', sans-serif; font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900; color: white; line-height: 1; letter-spacing: -1px; margin-bottom: 0.8rem;
+}
+.hero-title span { color: transparent; -webkit-text-stroke: 1px var(--primary); text-shadow: 0 0 20px rgba(230,0,35,0.3); }
+.hero-sub { font-size: 1.05rem; color: var(--text-secondary); }
 
-/* Wrapper — the main card that grounds everything */
+/* WRAPPER & LAYOUT */
 .agendar-wrapper {
   position: relative; z-index: 1;
-  max-width: 1140px; margin: 0 auto;
-  padding: 0 2rem 4rem;
-  animation: layoutIn 0.5s ease 0.1s both;
+  max-width: 1200px; margin: 0 auto;
+  padding: 0 2rem 5rem;
 }
-
-/* Layout */
 .agendar-layout {
   display: flex; gap: 0;
-  background: rgba(12,12,12,0.9);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(220,38,38,0.06);
+  padding: 0;
+  border-radius: 16px;
 }
-@keyframes layoutIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-/* Steps sidebar */
+/* SIDEBAR */
 .steps-sidebar {
-  flex: 0 0 240px;
-  display: flex; flex-direction: column; gap: 0;
-  background: rgba(6,6,6,0.8);
-  border-right: 1px solid rgba(255,255,255,0.06);
-  padding: 2rem 1.5rem;
+  flex: 0 0 300px;
+  display: flex; flex-direction: column;
+  background: rgba(0,0,0,0.3);
+  border-right: var(--border-matte);
+  padding: 3rem 2rem;
 }
-.steps-track {
-  display: flex; flex-direction: column; gap: 0;
-  flex: 1;
-}
+.steps-track { display: flex; flex-direction: column; flex: 1; gap: 1rem; }
 
-.step-node { display: flex; align-items: flex-start; gap: 0.8rem; position: relative; padding-bottom: 1.6rem; }
+.step-node { display: flex; align-items: flex-start; gap: 1.2rem; position: relative; padding-bottom: 2.5rem; }
 .step-node:last-child { padding-bottom: 0; }
 
 .step-bubble {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.78rem; font-weight: 800;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.35);
-  transition: all 0.35s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700;
+  background: var(--bg-deep); border: var(--border-matte);
+  color: var(--text-muted);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative; z-index: 2;
 }
-.step-node.active .step-bubble { background: #dc2626; border-color: transparent; color: white; box-shadow: 0 4px 16px rgba(220,38,38,0.4); }
-.step-node.completed .step-bubble { background: rgba(16,185,129,0.15); border-color: rgba(16,185,129,0.3); color: #34d399; }
+.step-node.active .step-bubble {
+  background: var(--primary); border-color: var(--primary-light); color: white;
+  box-shadow: 0 0 20px rgba(230,0,35,0.4);
+}
+.step-node.completed .step-bubble {
+  background: rgba(255,255,255,0.05); color: white; border-color: rgba(255,255,255,0.3);
+}
 
-.step-info { display: flex; flex-direction: column; gap: 0.1rem; padding-top: 0.3rem; }
-.step-name { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.35); transition: color 0.3s; }
+.step-info { display: flex; flex-direction: column; gap: 0.2rem; padding-top: 0.5rem; }
+.step-name { font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); transition: color 0.3s; text-transform: uppercase; letter-spacing: 1px; }
 .step-node.active .step-name { color: white; }
-.step-node.completed .step-name { color: rgba(255,255,255,0.5); }
-.step-desc { font-size: 0.65rem; color: rgba(255,255,255,0.2); }
+.step-node.completed .step-name { color: var(--text-secondary); }
+.step-desc { font-size: 0.75rem; color: var(--text-muted); }
 
-.step-connector { position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: rgba(255,255,255,0.06); }
-.connector-fill { height: 0; width: 100%; background: linear-gradient(180deg, #dc2626, rgba(220,38,38,0.3)); transition: height 0.5s ease; }
+.step-connector { position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: rgba(255,255,255,0.05); z-index: 1; }
+.connector-fill { height: 0; width: 100%; background: var(--primary); transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
 .connector-fill.filled { height: 100%; }
 
-/* Bubble swap transition */
-.bubble-swap-enter-active,.bubble-swap-leave-active { transition: all 0.2s ease; }
-.bubble-swap-enter-from { opacity:0; transform:scale(0.5); }
-.bubble-swap-leave-to   { opacity:0; transform:scale(1.5); }
-
-/* Price preview */
+/* Price Preview */
 .price-preview {
-  background: rgba(220,38,38,0.06);
-  border: 1px solid rgba(220,38,38,0.2);
-  border-radius: 12px; padding: 1.2rem;
-  text-align: center;
-  margin-top: 1.5rem;
-  animation: fadeIn 0.4s ease;
+  margin-top: 3rem; padding: 1.5rem;
+  background: rgba(230,0,35,0.03); border: 1px solid rgba(230,0,35,0.2);
+  border-radius: 12px; text-align: center; position: relative; overflow: hidden;
 }
-@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.pp-label { font-size: 0.62rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 0.4rem; }
-.pp-value { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 900; color: #dc2626; line-height: 1; margin-bottom: 0.3rem; }
-.pp-service { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+.pp-glitch-border {
+  position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+  background: var(--primary); animation: scanline 2s linear infinite;
+}
+@keyframes scanline { 0% { top: 0; opacity: 1; } 100% { top: 100%; opacity: 0; } }
+.pp-label { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: var(--primary); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.pp-value { font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; font-weight: 900; color: white; line-height: 1; margin-bottom: 0.5rem; }
+.pp-service { font-size: 0.8rem; color: var(--text-secondary); }
 
-/* Form area */
+/* FORM AREA */
 .form-area {
-  flex: 1; display: flex; flex-direction: column; gap: 1.2rem;
-  padding: 2rem;
-  min-width: 0;
+  flex: 1; padding: 3rem 4rem; display: flex; flex-direction: column; min-width: 0;
 }
 
 .progress-bar {
-  height: 3px; background: rgba(255,255,255,0.05); border-radius: 4px;
-  position: relative; overflow: hidden;
+  height: 2px; background: rgba(255,255,255,0.05); border-radius: 2px;
+  position: relative; margin-bottom: 3rem;
 }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #dc2626, #ef4444); border-radius: 4px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-.progress-label { position: absolute; right: 0; top: 8px; font-size: 0.62rem; color: rgba(255,255,255,0.3); }
-
-/* Step panel */
-.step-panel {
-  background: transparent;
-  border: none;
-  border-radius: 0; padding: 0;
-  position: relative; overflow: hidden;
-  flex: 1;
+.progress-fill { height: 100%; background: var(--primary); transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.progress-label {
+  position: absolute; right: 0; top: 10px;
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; letter-spacing: 2px; color: var(--text-muted);
 }
-.step-panel::before { display: none; }
 
-.step-panel-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.8rem; }
+.step-panel { flex: 1; }
+
+.step-panel-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 3rem; }
 .sph-num {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.5rem; font-weight: 900;
-  color: rgba(220,38,38,0.12); line-height: 1;
-  flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif; font-size: 4rem; font-weight: 900;
+  color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+  line-height: 1;
 }
-.sph-title { font-family: 'Montserrat', sans-serif; font-size: 1.4rem; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 0.2rem; }
-.sph-title span { color: #dc2626; }
-.sph-sub { font-size: 0.78rem; color: rgba(255,255,255,0.3); }
+.sph-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.8rem; font-weight: 900; color: white; margin-bottom: 0.3rem; letter-spacing: -0.5px; text-transform: uppercase; }
+.sph-title span { color: var(--primary); }
+.sph-sub { font-size: 0.95rem; color: var(--text-secondary); }
 
-/* Service cards grid */
-.services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-.service-card {
-  display: flex; align-items: center; gap: 0.8rem;
-  padding: 0.9rem 1rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px;
-  cursor: pointer; text-align: left; width: 100%;
-  transition: all 0.25s ease;
-  position: relative; overflow: hidden;
-  animation: cardIn 0.35s ease calc(var(--i,0) * 0.05s) both;
+/* SERVICE CARDS GRID */
+.services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem; }
+.service-opt-card {
+  display: flex; align-items: center; gap: 1rem; padding: 1.2rem;
+  background: var(--bg-deep); border: var(--border-matte); border-radius: 12px;
+  cursor: pointer; text-align: left; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeUp 0.4s ease both;
 }
-@keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-.service-card:hover { border-color: rgba(220,38,38,0.25); background: rgba(220,38,38,0.04); transform: translateY(-1px); }
-.service-card.selected { border-color: rgba(220,38,38,0.5); background: rgba(220,38,38,0.08); }
+.service-opt-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
+.service-opt-card.selected { border-color: var(--primary); background: rgba(230,0,35,0.05); box-shadow: 0 5px 20px rgba(230,0,35,0.2); }
 
-.sc-icon { font-size: 1.5rem; flex-shrink: 0; }
-.sc-info { flex: 1; display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
-.sc-name { font-size: 0.82rem; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sc-desc { font-size: 0.68rem; color: rgba(255,255,255,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sc-price { font-family: 'Montserrat', sans-serif; font-size: 0.95rem; font-weight: 900; color: #dc2626; flex-shrink: 0; }
-.sc-check {
-  position: absolute; top: 0.5rem; right: 0.5rem;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: #dc2626;
-  display: flex; align-items: center; justify-content: center;
-  color: white;
-  opacity: 0; transform: scale(0.5);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.service-card.selected .sc-check { opacity: 1; transform: scale(1); }
+.sc-icon { font-size: 2rem; filter: grayscale(100%); transition: filter 0.3s; }
+.service-opt-card.selected .sc-icon { filter: grayscale(0%); }
+.sc-info { flex: 1; }
+.sc-name { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: white; margin-bottom: 0.2rem; }
+.sc-desc { display: block; font-size: 0.8rem; color: var(--text-secondary); }
+.sc-price { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--primary); font-size: 1.1rem; }
 
-/* Fields */
-.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+/* FIELDS */
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .fields-span { grid-column: 1 / -1; }
-.field-group { display: flex; flex-direction: column; gap: 0.38rem; }
-.field-label { font-size: 0.63rem; font-weight: 700; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; }
-.req { color: #dc2626; }
+.req { color: var(--primary); }
 
-.input-wrap { position: relative; display: flex; align-items: center; }
-.input-icon { position: absolute; left: 0.9rem; color: rgba(255,255,255,0.2); pointer-events: none; }
-.input-wrap input,
-.input-wrap select,
-.textarea-wrap textarea {
-  width: 100%; padding: 0.75rem 1rem 0.75rem 2.6rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 9px;
-  color: white; font-size: 0.88rem; font-family: inherit;
-  outline: none; transition: all 0.22s;
-}
-.input-wrap input::placeholder,
-.input-wrap select::placeholder { color: rgba(255,255,255,0.2); }
-.input-wrap input:focus,
-.input-wrap select:focus,
-.textarea-wrap textarea:focus {
-  border-color: rgba(220,38,38,0.5);
-  background: rgba(220,38,38,0.04);
-  box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
-}
-.input-wrap select option { background: #1a1a1a; }
-
-.textarea-wrap textarea { padding: 0.75rem 1rem; resize: vertical; }
-
-/* Time slots */
-.time-slots { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.time-slots { display: flex; flex-wrap: wrap; gap: 0.8rem; }
 .time-slot {
-  padding: 0.45rem 0.9rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 7px;
-  color: rgba(255,255,255,0.45); font-family: inherit;
-  font-size: 0.8rem; font-weight: 600; cursor: pointer;
-  transition: all 0.2s;
+  padding: 0.6rem 1.2rem;
+  background: var(--bg-deep); border: var(--border-matte); border-radius: 6px;
+  color: var(--text-secondary); font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
 }
-.time-slot:hover { border-color: rgba(220,38,38,0.3); color: white; }
-.time-slot.selected { background: rgba(220,38,38,0.12); border-color: rgba(220,38,38,0.5); color: white; }
+.time-slot:hover { border-color: rgba(255,255,255,0.3); color: white; }
+.time-slot.selected { background: var(--primary); border-color: var(--primary); color: white; box-shadow: var(--shadow-red); }
 
-/* Summary */
-.summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.2rem; }
-.summary-section {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px; padding: 1rem;
+/* SUMMARY GRID */
+.summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+.matte-card-sub {
+  background: var(--bg-deep); border: var(--border-matte); border-radius: 12px; padding: 1.5rem;
 }
-.ss-title {
-  display: flex; align-items: center; gap: 0.4rem;
-  font-size: 0.65rem; font-weight: 700;
-  color: rgba(220,38,38,0.7);
-  text-transform: uppercase; letter-spacing: 1.5px;
-  margin-bottom: 0.8rem;
-}
-.ss-row { display: flex; flex-direction: column; margin-bottom: 0.6rem; }
-.ss-row span { font-size: 0.6rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; }
-.ss-row strong { font-size: 0.82rem; color: white; font-weight: 600; margin-top: 0.1rem; }
+.ss-title { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; color: var(--primary); letter-spacing: 2px; margin-bottom: 1rem; }
+.ss-row { margin-bottom: 0.8rem; }
+.ss-row span { display: block; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.2rem; }
+.ss-row strong { font-size: 0.95rem; color: white; }
 
 .total-box {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 1.2rem 1.5rem;
-  background: rgba(220,38,38,0.06);
-  border: 1px solid rgba(220,38,38,0.2);
-  border-radius: 12px;
+  padding: 1.5rem 2rem; background: rgba(230,0,35,0.05); border: 1px solid rgba(230,0,35,0.2); border-radius: 12px;
 }
-.total-left { display: flex; flex-direction: column; gap: 0.2rem; }
-.total-label { font-size: 0.85rem; font-weight: 700; color: white; }
-.total-note { font-size: 0.68rem; color: rgba(255,255,255,0.3); }
-.total-price { font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 900; color: #dc2626; }
+.total-left { display: flex; flex-direction: column; gap: 0.3rem; }
+.total-label { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: white; letter-spacing: 1px; }
+.total-note { font-size: 0.8rem; color: var(--text-secondary); }
+.total-price { font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; font-weight: 900; color: var(--primary); }
 
-/* Actions */
+/* ACTIONS */
 .step-actions {
-  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  margin-top: auto;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 3rem; padding-top: 2rem; border-top: var(--border-matte);
 }
-.btn-prev {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.78rem 1.4rem;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 9px;
-  color: rgba(255,255,255,0.4); font-family: inherit;
-  font-size: 0.87rem; font-weight: 600;
-  cursor: pointer; transition: all 0.22s;
-}
-.btn-prev:hover:not(:disabled) { color: white; border-color: rgba(255,255,255,0.2); }
-.btn-prev:disabled { opacity: 0.25; cursor: not-allowed; }
+.btn-confirm { background: var(--success); border-color: var(--success); box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+.btn-confirm:hover { background: #00cc6d; border-color: #00cc6d; box-shadow: 0 0 30px rgba(0,255,136,0.4); }
 
-.btn-next, .btn-confirm {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.82rem 1.8rem;
-  background: #dc2626; border: none; border-radius: 9px;
-  color: white; font-family: inherit;
-  font-size: 0.9rem; font-weight: 700;
-  cursor: pointer; transition: all 0.28s;
-  box-shadow: 0 4px 20px rgba(220,38,38,0.3);
-}
-.btn-next:hover, .btn-confirm:hover { background: #b91c1c; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(220,38,38,0.4); }
+.step-slide-enter-active,.step-slide-leave-active { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.step-slide-enter-from { opacity:0; transform:translateX(30px); }
+.step-slide-leave-to   { opacity:0; transform:translateX(-30px); }
 
-.btn-confirm { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 20px rgba(16,185,129,0.25); }
-.btn-confirm:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 8px 28px rgba(16,185,129,0.35); }
-
-/* Step transition */
-.step-slide-enter-active,.step-slide-leave-active { transition: all 0.3s ease; }
-.step-slide-enter-from { opacity:0; transform:translateX(20px); }
-.step-slide-leave-to   { opacity:0; transform:translateX(-20px); }
-
-/* Success modal */
+/* SUCCESS MODAL */
 .success-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85);
-  backdrop-filter: blur(10px);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px);
   z-index: 9999; display: flex; align-items: center; justify-content: center;
 }
-.success-modal {
-  background: #0f0f0f;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px; padding: 2.5rem 2rem;
-  text-align: center; max-width: 420px; width: 90%;
-  position: relative; overflow: hidden;
-}
-.success-modal::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, #10b981, transparent);
-}
+.success-modal { text-align: center; max-width: 500px; width: 90%; padding: 4rem 3rem; }
 .success-ring {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #059669);
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--success); color: var(--bg-deep);
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 1.5rem;
-  box-shadow: 0 8px 32px rgba(16,185,129,0.35);
-  animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 2.5rem; font-weight: 900; margin: 0 auto 2rem;
+  box-shadow: 0 0 40px rgba(0,255,136,0.4);
+  animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes popIn { from{transform:scale(0)} to{transform:scale(1)} }
-.sm-title { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 900; color: white; margin-bottom: 0.4rem; }
-.sm-title span { color: #10b981; }
-.sm-sub { font-size: 0.85rem; color: rgba(255,255,255,0.35); margin-bottom: 1.5rem; }
+@keyframes popIn { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.sm-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 900; color: white; margin-bottom: 0.5rem; }
+.sm-title span { color: var(--success); }
+.sm-sub { color: var(--text-secondary); margin-bottom: 2rem; }
 .sm-details {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;
-  display: flex; flex-direction: column; gap: 0.6rem;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; text-align: left;
 }
-.sm-row { display: flex; align-items: center; gap: 0.6rem; font-size: 0.83rem; color: rgba(255,255,255,0.6); }
-.sm-row svg { color: rgba(255,255,255,0.3); flex-shrink: 0; }
-.sm-actions { display: flex; gap: 0.8rem; justify-content: center; }
-.btn-sm-ghost {
-  padding: 0.72rem 1.4rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 9px; color: rgba(255,255,255,0.5);
-  font-family: inherit; font-size: 0.87rem; font-weight: 600;
-  text-decoration: none; transition: all 0.22s;
-}
-.btn-sm-ghost:hover { color: white; border-color: rgba(255,255,255,0.25); }
-.btn-sm-primary {
-  padding: 0.72rem 1.4rem;
-  background: #dc2626; border: none; border-radius: 9px;
-  color: white; font-family: inherit; font-size: 0.87rem; font-weight: 700;
-  text-decoration: none; transition: all 0.25s;
-  box-shadow: 0 4px 16px rgba(220,38,38,0.3);
-}
-.btn-sm-primary:hover { background: #b91c1c; }
+.sm-row { display: flex; gap: 1rem; margin-bottom: 0.8rem; font-size: 0.9rem; }
+.sm-row span { color: var(--text-muted); width: 100px; }
+.sm-row strong { color: white; }
+.sm-actions { display: flex; gap: 1rem; justify-content: center; }
 
-.modal-anim-enter-active { animation: modalIn 0.3s ease; }
-.modal-anim-leave-active { animation: modalOut 0.22s ease; }
-@keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-@keyframes modalOut { from{opacity:1} to{opacity:0} }
-
-/* Responsive */
 @media (max-width: 900px) {
-  .agendar-wrapper { padding: 0 1rem 3rem; }
   .agendar-layout { flex-direction: column; }
-  .steps-sidebar {
-    flex: none; border-right: none;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 1.2rem 1.2rem 1rem;
-  }
+  .steps-sidebar { border-right: none; border-bottom: var(--border-matte); padding: 2rem; flex: auto; }
   .steps-track { flex-direction: row; overflow-x: auto; }
-  .step-node { flex-direction: column; align-items: center; padding-bottom: 0; padding-right: 1.2rem; flex-shrink: 0; }
+  .step-node { flex-direction: column; align-items: center; padding-bottom: 0; padding-right: 2rem; }
   .step-connector { display: none; }
   .step-info { text-align: center; }
-  .agendar-hero { padding: calc(var(--nav-height) + 1.5rem) 1.2rem 1rem; }
-  .form-area { padding: 1.5rem; }
-  .services-grid { grid-template-columns: 1fr; }
-  .fields-grid { grid-template-columns: 1fr; }
-  .summary-grid { grid-template-columns: 1fr; }
+  .form-area { padding: 2rem; }
+  .services-grid, .fields-grid, .summary-grid { grid-template-columns: 1fr; }
 }
 </style>

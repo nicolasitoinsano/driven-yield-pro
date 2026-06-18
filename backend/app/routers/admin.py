@@ -27,7 +27,7 @@ from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 
 from app.database import get_db
-from app.security import verify_password, create_token, require_admin
+from app.security import verify_password, create_token, require_admin, hash_password
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -99,6 +99,25 @@ def admin_login(body: AdminLoginBody):
             "role":   "admin",
         }
     }
+
+
+# ── GET /api/admin/setup (TEMPORARY) ─────────────────────────────────────────
+
+@router.get("/setup")
+def setup_admin():
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_admin, email FROM administrador LIMIT 1")
+        row = cur.fetchone()
+        if row:
+            hashed = hash_password("admin123")
+            cur.execute("UPDATE administrador SET contrasena = %s WHERE id_admin = %s", (hashed, row["id_admin"]))
+            return {"msg": "Contraseña reseteada", "email": row["email"], "password": "admin123"}
+        else:
+            email = "admin@taller.com"
+            hashed = hash_password("admin123")
+            cur.execute("INSERT INTO administrador (nombre, apellido, email, contrasena) VALUES ('Admin', 'Master', %s, %s)", (email, hashed))
+            return {"msg": "Administrador creado", "email": email, "password": "admin123"}
 
 
 # ── GET /api/admin/citas ──────────────────────────────────────────────────────

@@ -15,7 +15,8 @@ backend/
 │       ├── admin.py      # /api/admin/*
 │       ├── citas.py      # /api/citas/*
 │       ├── servicios.py  # /api/servicios
-│       └── perfil.py     # /api/perfil
+│       ├── perfil.py     # /api/perfil
+│       └── practica.py   # /api/practica-guiada (ejercicios)
 ├── run.py
 └── requirements.txt
 ```
@@ -30,14 +31,21 @@ python run.py
 
 ## Variables de entorno (opcionales)
 
-| Variable          | Descripción                          | Default                              |
-|-------------------|--------------------------------------|--------------------------------------|
-| `driven yield_SECRET`| Clave JWT (¡cambiar en producción!)  | `driven yield_dev_secret_CHANGE_IN_PROD_2026` |
-| `MAIL_HOST`       | Servidor SMTP                        | `smtp.gmail.com`                     |
-| `MAIL_PORT`       | Puerto SMTP                          | `587`                                |
-| `MAIL_USER`       | Email remitente                      | *(vacío = DRY-RUN, imprime en consola)* |
-| `MAIL_PASSWORD`   | Contraseña / app-key SMTP            | *(vacío)*                            |
-| `MAIL_FROM`       | Dirección From                       | igual a `MAIL_USER`                  |
+| Variable             | Descripción                          | Default                              |
+|----------------------|--------------------------------------|--------------------------------------|
+| `DRIVEN_YIELD_SECRET`| Clave JWT (¡cambiar en producción!)  | `driven yield_dev_secret_CHANGE_IN_PROD_2026` |
+| `DB_HOST`            | Host MySQL                           | `localhost`                          |
+| `DB_PORT`            | Puerto MySQL                         | `3306`                               |
+| `DB_USER`            | Usuario MySQL                        | `root`                               |
+| `DB_PASSWORD`        | Contraseña MySQL                     | *(vacío)*                            |
+| `DB_NAME`            | Nombre de la base de datos           | `driven_yield1`                      |
+| `BASE_URL`           | URL base del frontend (correos)      | `http://localhost:5173`              |
+| `CORS_ORIGINS`       | Orígenes CORS separados por coma     | `http://localhost:5173,http://localhost:3000` |
+| `MAIL_HOST`          | Servidor SMTP                        | `smtp.gmail.com`                     |
+| `MAIL_PORT`          | Puerto SMTP                          | `587`                                |
+| `MAIL_USER`          | Email remitente                      | *(vacío = DRY-RUN, imprime en consola)* |
+| `MAIL_PASSWORD`      | Contraseña / app-key SMTP            | *(vacío)*                            |
+| `MAIL_FROM`          | Dirección From                       | igual a `MAIL_USER`                  |
 
 ## SQL adicional requerido
 

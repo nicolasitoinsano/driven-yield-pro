@@ -1,24 +1,19 @@
 # app/database.py
 # ─────────────────────────────────────────────────────────────────────────────
 # Conexión a MySQL con PyMySQL.
-# Cambia los valores de DB_CONFIG según tu entorno.
-#
-# CORRECCIONES vs versión anterior:
-#   - get_db() ahora hace rollback en caso de excepción en lugar de silenciar
-#     el error. Con autocommit=True esto igual protege transacciones explícitas.
-#   - Se agrega connect_timeout para no colgar el proceso si MySQL no responde.
-#   - Se expone ping() en el healthcheck correctamente (conn.ping(reconnect=True)).
+# Configuración desde variables de entorno.
 # ─────────────────────────────────────────────────────────────────────────────
+import os
 import pymysql
 import pymysql.cursors
 from contextlib import contextmanager
 
 DB_CONFIG = {
-    "host":            "localhost",
-    "port":            3306,
-    "user":            "root",
-    "password":        "",           # <-- pon tu contraseña aquí
-    "database":        "driven_yield1",
+    "host":            os.getenv("DB_HOST", "localhost"),
+    "port":            int(os.getenv("DB_PORT", "3306")),
+    "user":            os.getenv("DB_USER", "root"),
+    "password":        os.getenv("DB_PASSWORD", ""),
+    "database":        os.getenv("DB_NAME", "driven_yield1"),
     "charset":         "utf8mb4",
     "cursorclass":     pymysql.cursors.DictCursor,
     "autocommit":      True,

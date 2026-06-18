@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from fastapi import HTTPException
 
-SECRET_KEY  = os.getenv("driven yield_SECRET", "driven yield_dev_secret_CHANGE_IN_PROD_2026")
+SECRET_KEY  = os.getenv("DRIVEN_YIELD_SECRET") or os.getenv("driven yield_SECRET", "driven yield_dev_secret_CHANGE_IN_PROD_2026")
 ALGORITHM   = "HS256"
 TOKEN_HOURS = 72
 

@@ -12,10 +12,14 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// Init stores
-const auth = useAuthStore()
-auth.init()
-const citas = useCitasStore()
-citas.init()
+async function bootstrap() {
+  const auth = useAuthStore()
+  await auth.init()
 
-app.mount('#app')
+  const citas = useCitasStore()
+  await citas.init()
+
+  app.mount('#app')
+}
+
+bootstrap()

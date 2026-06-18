@@ -69,7 +69,7 @@ const calendarOptions = computed(() => ({
   initialView: "dayGridMonth",
   headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,listMonth" },
   buttonText: { today: "Hoy", month: "Mes", week: "Semana", list: "Lista" },
-  events: eventos.value,
+  events: eventos,
   eventClick: handleEventClick,
   height: "auto",
   nowIndicator: true,

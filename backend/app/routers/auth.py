@@ -120,6 +120,22 @@ def _user_response(row: dict, token: str) -> dict:
     }
 
 
+def _ensure_password_reset_table(cur) -> None:
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            id_usuario INT NOT NULL,
+            token VARCHAR(128) NOT NULL UNIQUE,
+            expires_at DATETIME NOT NULL,
+            used TINYINT(1) DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_password_reset_usuario (id_usuario),
+            INDEX idx_password_reset_token (token),
+            FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+        )
+    """)
+
+
 # ── POST /api/auth/login ──────────────────────────────────────────────────────
 
 @router.post("/login")
@@ -245,6 +261,7 @@ def forgot_password(body: ForgotBody):
     """
     with get_db() as conn:
         cur = conn.cursor()
+        _ensure_password_reset_table(cur)
         cur.execute(
             "SELECT id_usuario, nombre, email FROM usuario WHERE email = %s LIMIT 1",
             (body.email.lower().strip(),)
@@ -256,21 +273,13 @@ def forgot_password(body: ForgotBody):
             reset_token = secrets.token_urlsafe(48)
             expires_at  = datetime.now(timezone.utc) + timedelta(hours=1)
 
-            # Guardar token en BD (se necesita la tabla password_reset_tokens)
-            # CREATE TABLE password_reset_tokens (
-            #   id INT AUTO_INCREMENT PRIMARY KEY,
-            #   id_usuario INT NOT NULL,
-            #   token VARCHAR(128) NOT NULL UNIQUE,
-            #   expires_at DATETIME NOT NULL,
-            #   used TINYINT(1) DEFAULT 0,
-            #   FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
-            # );
+            cur.execute(
+                "UPDATE password_reset_tokens SET used = 1 WHERE id_usuario = %s AND used = 0",
+                (row["id_usuario"],)
+            )
             cur.execute(
                 """INSERT INTO password_reset_tokens (id_usuario, token, expires_at, used)
-                   VALUES (%s, %s, %s, 0)
-                   ON DUPLICATE KEY UPDATE token = VALUES(token),
-                                           expires_at = VALUES(expires_at),
-                                           used = 0""",
+                   VALUES (%s, %s, %s, 0)""",
                 (row["id_usuario"], reset_token, expires_at.strftime("%Y-%m-%d %H:%M:%S"))
             )
             send_recuperacion_contrasena(row["email"], row["nombre"], reset_token)

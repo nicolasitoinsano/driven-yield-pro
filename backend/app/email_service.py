@@ -69,8 +69,13 @@ def send_email(to: str, subject: str, html_body: str) -> bool:
 
 # ── Plantillas de correo ──────────────────────────────────────────────────────
 
+def _base_url() -> str:
+    return os.getenv("BASE_URL", "http://localhost:5173").rstrip("/")
+
+
 def send_bienvenida(to: str, nombre: str) -> bool:
     """Correo de bienvenida tras registro exitoso."""
+    base = _base_url()
     subject = "¡Bienvenido a driven yield Pro! 🚗"
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;
@@ -82,7 +87,7 @@ def send_bienvenida(to: str, nombre: str) -> bool:
       <p>Hola <strong style="color:#fff">{nombre}</strong>,</p>
       <p>Tu cuenta ha sido creada exitosamente. Ya puedes agendar citas, revisar
          el historial de tu vehículo y mucho más.</p>
-      <a href="http://localhost:5173"
+      <a href="{base}"
          style="display:inline-block;margin-top:16px;padding:12px 24px;
                 background:#dc2626;color:#fff;text-decoration:none;
                 border-radius:8px;font-weight:bold">
@@ -137,7 +142,8 @@ def send_recuperacion_contrasena(to: str, nombre: str, token_reset: str) -> bool
     una ruta /reset-password?token=XXX que llame a POST /api/auth/reset-password.
     """
     subject = "Recuperación de contraseña — driven yield"
-    link    = f"http://localhost:5173/reset-password?token={token_reset}"
+    base    = _base_url()
+    link    = f"{base}/reset-password?token={token_reset}"
     html = f"""
     <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;
                 background:#0a0a0a;color:#e0e0e0;border-radius:12px;

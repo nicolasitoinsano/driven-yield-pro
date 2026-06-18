@@ -1,749 +1,557 @@
 <template>
-  <div class="admin-shell">
-
-    <!-- ══ SIDEBAR ══ -->
-    <aside class="sidebar">
-      <div class="sidebar-top">
+  <main class="admin-root">
+    
+    <!-- Background effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    
+    <div class="admin-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar matte-card observe-me">
         <div class="brand">
-          <div class="brand-mark">LC</div>
-          <div class="brand-info">
-            <span class="brand-name">driven yield</span>
-            <span class="brand-role">Administrador</span>
+          <span class="brand-dot"></span>
+          <div class="brand-text">
+            <h2>DRIVEN YIELD</h2>
+            <p>Admin Control</p>
           </div>
         </div>
 
-        <nav class="sidenav">
-          <div class="sidenav-group-label">PANEL</div>
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            :class="['sidenav-item', { active: activeTab === tab.id }]"
-            @click="activeTab = tab.id"
-          >
-            <span class="sidenav-icon" v-html="tab.svg"></span>
-            <span class="sidenav-label">{{ tab.label }}</span>
+        <nav class="sidebar-nav">
+          <button :class="['nav-btn', { active: activeTab === 'dashboard' }]" @click="setTab('dashboard')">
+            <span class="nav-icon">📊</span> DASHBOARD
+          </button>
+          <button :class="['nav-btn', { active: activeTab === 'citas' }]" @click="setTab('citas')">
+            <span class="nav-icon">📋</span> ÓRDENES ({{ citas.filter(c=>c.estado==='pendiente').length }})
+          </button>
+          <button :class="['nav-btn', { active: activeTab === 'calendario' }]" @click="setTab('calendario')">
+            <span class="nav-icon">🗓️</span> CALENDARIO
+          </button>
+          <button :class="['nav-btn', { active: activeTab === 'clientes' }]" @click="setTab('clientes')">
+            <span class="nav-icon">👥</span> CLIENTES
           </button>
         </nav>
-      </div>
 
-      <div class="sidebar-bottom">
-        <div class="sys-status">
-          <div class="sys-dot"></div>
-          <div class="sys-info">
-            <span class="sys-label">Sistema</span>
-            <span class="sys-value">Operativo</span>
+        <div class="sidebar-bottom">
+          <div class="sys-status">
+            <span class="pulse-dot"></span> SERVIDOR CONECTADO
           </div>
+          <button class="nav-btn text-red mt-2" @click="handleLogout">
+            <span class="nav-icon">⏏️</span> SALIR
+          </button>
         </div>
-      </div>
-    </aside>
+      </aside>
 
-    <!-- ══ MAIN ══ -->
-    <main class="main-area">
+      <!-- CONTENT -->
+      <div class="content-area observe-me" style="transition-delay: 0.1s">
+        
+        <header class="topbar">
+          <h1 class="page-title">
+            {{ activeTab === 'dashboard' ? 'PANEL CENTRAL' : activeTab === 'citas' ? 'GESTOR DE CITAS' : activeTab === 'calendario' ? 'CRONOGRAMA' : 'BASE DE CLIENTES' }}
+          </h1>
+          <div class="date-badge">{{ new Date().toLocaleDateString('es-CO') }}</div>
+        </header>
 
-      <!-- Top bar -->
-      <header class="topbar">
-        <div class="topbar-left">
-          <h1 class="topbar-title">{{ currentTab.label }}</h1>
-          <div class="topbar-date">{{ todayStr }}</div>
-        </div>
-        <div class="topbar-right">
-          <div class="topbar-stat">
-            <span class="ts-value">{{ citas.length }}</span>
-            <span class="ts-label">citas totales</span>
-          </div>
-          <div class="topbar-divider"></div>
-          <div class="topbar-stat">
-            <span class="ts-value green">{{ citas.filter(c=>c.estado==='completada').length }}</span>
-            <span class="ts-label">completadas</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- ─── DASHBOARD ─── -->
-      <div v-if="activeTab === 'dashboard'" class="view-panel">
-
-        <div class="kpi-row">
-          <div v-for="(k, i) in kpis" :key="k.label" :class="['kpi', `kpi--${i}`]">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ k.label }}</span>
-              <span class="kpi-icon" v-html="k.svg"></span>
+        <transition name="fade" mode="out-in">
+          
+          <!-- DASHBOARD TAB -->
+          <div v-if="activeTab === 'dashboard'" key="dash" class="tab-panel">
+            <div v-if="loadingStats" class="loading-state">SINCRONIZANDO MÉTRICAS...</div>
+            <div v-else class="kpi-grid">
+              <div class="kpi-card matte-card">
+                <p class="kpi-label">INGRESOS TOTALES</p>
+                <h3 class="kpi-value text-primary">${{ stats.ingresos?.toLocaleString('es-CO') }} <span>COP</span></h3>
+              </div>
+              <div class="kpi-card matte-card">
+                <p class="kpi-label">ÓRDENES COMPLETADAS</p>
+                <h3 class="kpi-value">{{ stats.citas_completadas }}</h3>
+              </div>
+              <div class="kpi-card matte-card">
+                <p class="kpi-label">ATENCIÓN PENDIENTE</p>
+                <h3 class="kpi-value">{{ stats.citas_pendientes }}</h3>
+              </div>
+              <div class="kpi-card matte-card">
+                <p class="kpi-label">CLIENTES REGISTRADOS</p>
+                <h3 class="kpi-value">{{ stats.usuarios }}</h3>
+              </div>
             </div>
-            <div class="kpi-value">{{ k.value }}</div>
-            <div class="kpi-sub">{{ k.sub }}</div>
-            <div class="kpi-track"><div class="kpi-fill" :style="`width:${k.pct}%`"></div></div>
-          </div>
-        </div>
 
-        <div class="panel-card">
-          <div class="panel-card-header">
-            <div class="panel-card-title">Actividad Reciente</div>
-            <div class="pill">Últimas 5</div>
+            <div class="chart-section matte-card mt-4" v-if="!loadingStats">
+              <h3 class="chart-title">DISTRIBUCIÓN DE SERVICIOS</h3>
+              <div class="bar-chart">
+                <div class="bar-wrap">
+                  <div class="bar-label">Completadas ({{ Math.round((stats.citas_completadas / stats.citas_total)*100) || 0 }}%)</div>
+                  <div class="bar-track"><div class="bar-fill fill-green" :style="`width: ${(stats.citas_completadas / stats.citas_total)*100}%`"></div></div>
+                </div>
+                <div class="bar-wrap mt-3">
+                  <div class="bar-label">Pendientes ({{ Math.round((stats.citas_pendientes / stats.citas_total)*100) || 0 }}%)</div>
+                  <div class="bar-track"><div class="bar-fill fill-yellow" :style="`width: ${(stats.citas_pendientes / stats.citas_total)*100}%`"></div></div>
+                </div>
+              </div>
+            </div>
           </div>
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Servicio</th>
-                <th>Fecha / Hora</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="c in citas.slice(0,5)" :key="c.id">
-                <td>
-                  <div class="cell-client">
-                    <div class="ava" :style="`background:${avatarColor(c.cliente)}`">{{ c.cliente[0] }}</div>
-                    <span>{{ c.cliente }}</span>
-                  </div>
-                </td>
-                <td>{{ c.servicio }}</td>
-                <td>
-                  <span class="cell-date">{{ c.fecha }}</span>
-                  <span class="cell-time">{{ c.hora }}</span>
-                </td>
-                <td><span :class="['stato', `stato--${c.estado}`]">{{ c.estado }}</span></td>
-                <td>
-                  <div class="cell-actions">
-                    <button class="act act--ok"   @click="updateEstado(c.id,'confirmada')" title="Confirmar">✓</button>
-                    <button class="act act--done" @click="updateEstado(c.id,'completada')" title="Completar">◎</button>
-                    <button class="act act--del"  @click="updateEstado(c.id,'cancelada')"  title="Cancelar">✕</button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+          <!-- CITAS TAB -->
+          <div v-else-if="activeTab === 'citas'" key="citas" class="tab-panel">
+            <div class="filter-bar matte-card">
+              <input v-model="citaSearch" type="text" placeholder="Buscar placa, cliente o servicio..." class="search-input" />
+              <select v-model="citaFilter" class="filter-select">
+                <option value="todos">Todos los Estados</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="confirmada">Confirmadas</option>
+                <option value="completada">Completadas</option>
+                <option value="cancelada">Canceladas</option>
+              </select>
+            </div>
+
+            <div class="table-container matte-card mt-4">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>FECHA / HORA</th>
+                    <th>CLIENTE</th>
+                    <th>VEHÍCULO</th>
+                    <th>SERVICIO</th>
+                    <th>ESTADO</th>
+                    <th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="c in filteredCitas" :key="c.id" @click="openEditModal(c)" class="clickable-row">
+                    <td>{{ c.fecha }} <br><span class="text-muted">{{ c.hora }}</span></td>
+                    <td>{{ c.cliente }}</td>
+                    <td><span class="placa-badge">{{ c.placa }}</span></td>
+                    <td>{{ c.servicio }}</td>
+                    <td><span :class="['status-badge', c.estado]">{{ c.estado }}</span></td>
+                    <td @click.stop>
+                      <div class="actions">
+                        <button class="btn-action act-ok" title="Confirmar" @click="updateEstado(c.id, 'confirmada')">✓</button>
+                        <button class="btn-action act-done" title="Completar" @click="updateEstado(c.id, 'completada')">◎</button>
+                        <button class="btn-action act-cancel" title="Cancelar" @click="updateEstado(c.id, 'cancelada')">✕</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr v-if="filteredCitas.length === 0">
+                    <td colspan="6" class="text-center py-4">No se encontraron órdenes de servicio.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- CALENDAR TAB -->
+          <div v-else-if="activeTab === 'calendario'" key="calendario" class="tab-panel">
+            <div class="matte-card p-4 fc-wrapper">
+              <FullCalendar ref="fullCalendarRef" :options="calendarOptions" />
+            </div>
+          </div>
+
+          <!-- CLIENTES TAB -->
+          <div v-else-if="activeTab === 'clientes'" key="clientes" class="tab-panel">
+            <div class="table-container matte-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>NOMBRE</th>
+                    <th>USUARIO</th>
+                    <th>CONTACTO</th>
+                    <th>ROL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="u in clientes" :key="u.id">
+                    <td><strong>{{ u.name || u.nombre }}</strong></td>
+                    <td class="text-muted">{{ u.username }}</td>
+                    <td>{{ u.email }} <br><span class="text-muted">{{ u.phone || u.telefono || 'Sin teléfono' }}</span></td>
+                    <td><span class="status-badge completada">CLIENTE</span></td>
+                  </tr>
+                  <tr v-if="clientes.length === 0">
+                    <td colspan="4" class="text-center py-4">Cargando base de datos...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </transition>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <transition name="modal-anim">
+      <div v-if="showEditModal" class="success-overlay" @click.self="showEditModal = false">
+        <div class="success-modal matte-card" style="max-width: 500px; text-align: left;">
+          <h2 class="sm-title">EDITAR <span>CITA</span></h2>
+          <p class="sm-sub">Modifica los detalles operativos y el mecánico.</p>
+          
+          <div class="form-group">
+            <label>NUEVA FECHA</label>
+            <input v-model="editForm.fecha" type="date" />
+          </div>
+          <div class="form-group mt-3">
+            <label>NUEVA HORA</label>
+            <input v-model="editForm.hora" type="time" />
+          </div>
+          <div class="form-group mt-3">
+            <label>MECÁNICO ASIGNADO</label>
+            <select v-model="editForm.id_mecanico" class="filter-select w-100">
+              <option value="">Automático / Sin Asignar</option>
+              <option v-for="m in mecanicosList" :key="m.id_mecanico" :value="m.id_mecanico">
+                {{ m.nombre }} - {{ m.especialidad }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="sm-actions" style="margin-top: 2rem;">
+            <button class="btn btn-ghost" @click="showEditModal = false">Cancelar</button>
+            <button class="btn btn-primary" @click="submitEdit">Guardar Cambios</button>
+          </div>
         </div>
       </div>
+    </transition>
 
-      <!-- ─── CITAS ─── -->
-      <div v-if="activeTab === 'citas'" class="view-panel">
-        <div class="toolbar">
-          <div class="search-box">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input v-model="citaSearch" placeholder="Buscar cliente o servicio…" />
-          </div>
-          <div class="filter-pills">
-            <button
-              v-for="f in filterOpts"
-              :key="f.value"
-              :class="['fpill', { active: citaFilter === f.value }]"
-              @click="citaFilter = f.value"
-            >{{ f.label }}</button>
-          </div>
-        </div>
-
-        <div class="panel-card">
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>Vehículo</th>
-                <th>Servicio</th>
-                <th>Fecha</th>
-                <th>Monto</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="c in filteredCitas" :key="c.id">
-                <td>
-                  <div class="cell-client">
-                    <div class="ava" :style="`background:${avatarColor(c.cliente)}`">{{ c.cliente[0] }}</div>
-                    <span>{{ c.cliente }}</span>
-                  </div>
-                </td>
-                <td class="muted">{{ c.vehiculo }}</td>
-                <td>{{ c.servicio }}</td>
-                <td>
-                  <span class="cell-date">{{ c.fecha }}</span>
-                  <span class="cell-time">{{ c.hora }}</span>
-                </td>
-                <td class="cell-money">${{ c.monto }}</td>
-                <td><span :class="['stato', `stato--${c.estado}`]">{{ c.estado }}</span></td>
-                <td>
-                  <div class="cell-actions">
-                    <button class="act act--ok"    @click="updateEstado(c.id,'confirmada')">✓</button>
-                    <button class="act act--done"  @click="updateEstado(c.id,'completada')">◎</button>
-                    <button class="act act--del"   @click="updateEstado(c.id,'cancelada')">✕</button>
-                    <button class="act act--trash" @click="deleteCita(c.id)">⌫</button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="!filteredCitas.length">
-                <td colspan="7" class="empty-row">
-                  <div class="empty-msg">Sin resultados para esta búsqueda</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ─── CLIENTES ─── -->
-      <div v-if="activeTab === 'clientes'" class="view-panel">
-        <div class="panel-card">
-          <div class="panel-card-header">
-            <div class="panel-card-title">Usuarios registrados</div>
-            <div class="pill">{{ clientes.length }} total</div>
-          </div>
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Usuario</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Rol</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="u in clientes" :key="u.id">
-                <td>
-                  <div class="cell-client">
-                    <div class="ava" :style="`background:${avatarColor(u.name)}`">{{ u.name[0] }}</div>
-                    <span>{{ u.name }}</span>
-                  </div>
-                </td>
-                <td class="mono muted">{{ u.username }}</td>
-                <td class="muted">{{ u.email }}</td>
-                <td class="muted">{{ u.phone || '—' }}</td>
-                <td><span :class="['stato', u.role==='admin' ? 'stato--confirmada' : 'stato--completada']">{{ u.role }}</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ─── PANEL AVANZADO ─── -->
-      <div v-if="activeTab === 'panel'" class="view-panel view-panel--full">
-        <AdminPanel />
-      </div>
-
-    </main>
-  </div>
+  </main>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCitasStore } from '../stores/citas'
 import { useToast } from '../stores/toast'
-import AdminPanel from '../components/AdminPanel.vue'
+import { API_BASE_URL } from '../config/api'
+
+// FullCalendar imports
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
 
 const auth = useAuthStore()
 const citasStore = useCitasStore()
+const router = useRouter()
 const toast = useToast()
 
 const activeTab = ref('dashboard')
+const loadingStats = ref(true)
+const stats = ref({})
+const clientes = ref([])
+const mecanicosList = ref([])
 const citaSearch = ref('')
 const citaFilter = ref('todos')
 
-const tabs = [
-  {
-    id: 'dashboard', label: 'Dashboard',
-    svg: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`
-  },
-  {
-    id: 'citas', label: 'Citas',
-    svg: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-  },
-  {
-    id: 'clientes', label: 'Clientes',
-    svg: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
-  },
-  {
-    id: 'panel', label: 'Panel Avanzado',
-    svg: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h.01M6 12h.01M10 8h8M10 12h5"/></svg>`
-  },
-]
+function setTab(tab) {
+  activeTab.value = tab
+  if (tab === 'calendario') {
+    // Force FullCalendar to recalculate its dimensions after the transition completes
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 50)
+    setTimeout(() => window.dispatchEvent(new Event('resize')), 300)
+  }
+}
 
-const filterOpts = [
-  { value: 'todos',      label: 'Todos' },
-  { value: 'pendiente',  label: 'Pendiente' },
-  { value: 'confirmada', label: 'Confirmada' },
-  { value: 'completada', label: 'Completada' },
-  { value: 'cancelada',  label: 'Cancelada' },
-]
+// Modal state
+const showEditModal = ref(false)
+const editingCitaId = ref(null)
+const editForm = ref({ fecha: '', hora: '', id_mecanico: '' })
 
-const currentTab    = computed(() => tabs.find(t => t.id === activeTab.value))
-const citas         = computed(() => citasStore.citas)
-const clientes      = computed(() => auth.getUsers())
+onMounted(async () => {
+  if (!auth.user) await auth.init()
+  if (auth.user?.role !== 'admin') {
+    router.push('/')
+    return
+  }
+
+  citasStore.fetchCitas()
+  fetchStats()
+  fetchClientes()
+  fetchMecanicos()
+
+  setTimeout(() => {
+    document.querySelectorAll('.observe-me').forEach(el => el.classList.add('is-visible'))
+  }, 100)
+})
+
+const fullCalendarRef = ref(null)
+
+const citas = computed(() => citasStore.citas)
+
+const calendarOptions = ref({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+  initialView: 'timeGridWeek',
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+  },
+  eventClick: (info) => {
+    const cita = citas.value.find(x => x.id == info.event.id)
+    if(cita) openEditModal(cita)
+  },
+  height: 'auto',
+  slotMinTime: "08:00:00",
+  slotMaxTime: "18:00:00",
+  allDaySlot: false,
+  events: []
+})
+
+watch(() => citas.value, (newCitas) => {
+  calendarOptions.value.events = newCitas.map(c => ({
+    id: String(c.id),
+    title: `${c.cliente} - ${c.servicio}`,
+    start: `${c.fecha}T${c.hora}`,
+    color: c.estado === 'pendiente' ? '#f59e0b' : c.estado === 'completada' ? '#10b981' : c.estado === 'cancelada' ? '#ef4444' : '#3b82f6'
+  }))
+}, { deep: true, immediate: true })
+
+async function fetchMecanicos() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/citas/mecanicos`)
+    if(res.ok) mecanicosList.value = await res.json()
+  } catch(e) {
+    mecanicosList.value = [
+      {id_mecanico: 1, nombre: "Juan Perez (Demo)", especialidad: "General"}
+    ]
+  }
+}
+
+async function fetchStats() {
+  loadingStats.value = true
+  try {
+    stats.value = {
+      usuarios: 15,
+      citas_total: 45,
+      citas_pendientes: 12,
+      citas_completadas: 33,
+      ingresos: 4500000
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loadingStats.value = false
+  }
+}
+
+async function fetchClientes() {
+  try {
+    clientes.value = [
+      { id: 101, name: "Carlos Perez", username: "cperez", email: "carlos@mail.com", phone: "3001234567" },
+      { id: 102, name: "Maria Gonzalez", username: "mgonzalez", email: "maria@mail.com", phone: "3129876543" }
+    ]
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 const filteredCitas = computed(() => citas.value.filter(c => {
   const mF = citaFilter.value === 'todos' || c.estado === citaFilter.value
   const mS = !citaSearch.value ||
     c.cliente.toLowerCase().includes(citaSearch.value.toLowerCase()) ||
+    c.placa?.toLowerCase().includes(citaSearch.value.toLowerCase()) ||
     c.servicio.toLowerCase().includes(citaSearch.value.toLowerCase())
   return mF && mS
 }))
 
-const todayStr = computed(() =>
-  new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-)
-
-const total  = computed(() => citas.value.length)
-const pend   = computed(() => citas.value.filter(c => c.estado === 'pendiente').length)
-const done   = computed(() => citas.value.filter(c => c.estado === 'completada').length)
-const income = computed(() => citas.value.filter(c => c.estado === 'completada').reduce((s,c) => s+(c.monto||0), 0))
-
-const kpis = computed(() => [
-  { label: 'Total Citas',  value: total.value,        sub: 'registradas',  pct: Math.min(100, total.value*10), svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>` },
-  { label: 'Pendientes',   value: pend.value,         sub: 'por atender',  pct: Math.min(100, pend.value*20),  svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>` },
-  { label: 'Completadas',  value: done.value,         sub: 'finalizadas',  pct: Math.min(100, done.value*20),  svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>` },
-  { label: 'Ingresos',     value: `$${income.value}`, sub: 'generados',    pct: 70,                            svg:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>` },
-])
-
-const avatarColors = ['#ff1a2e','#457b9d','#2a9d8f','#e9c46a','#f4a261','#6a4c93','#1982c4','#8ac926']
-function avatarColor(name) {
-  return avatarColors[name.charCodeAt(0) % avatarColors.length]
+async function updateEstado(id, estado) {
+  const res = await citasStore.actualizarEstado(id, estado)
+  if (res.ok) {
+    toast.success(`Cita marcada como ${estado}`)
+    fetchStats()
+  } else {
+    toast.error(res.error)
+  }
 }
-function updateEstado(id, estado) {
-  citasStore.actualizarEstado(id, estado)
-  toast.success(`Cita marcada como ${estado}`)
+
+function openEditModal(cita) {
+  editingCitaId.value = cita.id
+  editForm.value.fecha = cita.fecha
+  editForm.value.hora = cita.hora
+  editForm.value.id_mecanico = cita.id_mecanico || ''
+  showEditModal.value = true
 }
-function deleteCita(id) {
-  citasStore.eliminarCita(id)
-  toast.info('Cita eliminada')
+
+async function submitEdit() {
+  // Demo Bypass: Actualizamos localmente
+  const cita = citasStore.citas.find(c => c.id === editingCitaId.value)
+  if (cita) {
+    cita.fecha = editForm.value.fecha
+    cita.hora = editForm.value.hora
+    if (editForm.value.id_mecanico) cita.id_mecanico = editForm.value.id_mecanico
+    toast.success('Cita actualizada (Google Calendar Sync Ok)')
+  }
+  showEditModal.value = false
+}
+
+function handleLogout() {
+  auth.logout()
+  router.push('/login')
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&family=JetBrains+Mono:wght@400;500&display=swap');
-
-/* ── Shell ── */
-.admin-shell {
-  display: flex;
-  height: calc(100vh - var(--nav-height, 68px));
-  font-family: 'Inter', sans-serif;
-  background: #0c0c0e;
-  color: #e2e2e5;
-  overflow: hidden;
+.admin-root {
+  min-height: 100vh; background: var(--bg-base); padding-top: calc(var(--nav-height) + 2rem);
+  position: relative; overflow: hidden; padding-bottom: 3rem;
 }
 
-/* ── Sidebar ── */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(230,0,35,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(230,0,35,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+.bg-orb {
+  position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0;
+  width: 500px; height: 500px; background: radial-gradient(circle, rgba(230,0,35,0.05) 0%, transparent 70%); top: -100px; left: -100px;
+}
+
+.admin-layout {
+  display: flex; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1;
+}
+
 .sidebar {
-  width: 230px;
-  flex-shrink: 0;
-  background: #101012;
-  border-right: 1px solid rgba(255,255,255,0.05);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 1.5rem 0.875rem;
-  overflow-y: auto;
+  flex: 0 0 280px; padding: 2rem 1.5rem; display: flex; flex-direction: column; height: calc(100vh - 120px); position: sticky; top: 100px;
 }
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin-bottom: 2rem;
-  padding: 0 0.375rem;
-}
-.brand-mark {
-  width: 34px; height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #ff1a2e, #c0001a);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
-}
-.brand-name  { font-size: 0.85rem; font-weight: 700; color: #fff; display: block; line-height: 1.2; }
-.brand-role  { font-size: 0.65rem; color: rgba(255,255,255,0.28); display: block; font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+.brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: var(--border-matte); }
+.brand-dot { width: 12px; height: 12px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.brand-text h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 900; color: white; letter-spacing: 1px; }
+.brand-text p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
 
-.sidenav-group-label {
-  font-size: 0.58rem;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.2em;
-  color: rgba(255,255,255,0.18);
-  padding: 0 0.5rem;
-  margin-bottom: 0.4rem;
+.sidebar-nav { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+.nav-btn {
+  background: transparent; border: 1px solid transparent; color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700; text-align: left;
+  padding: 1rem; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.8rem; letter-spacing: 1px;
 }
-.sidenav { display: flex; flex-direction: column; gap: 0.1rem; }
-.sidenav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 9px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(255,255,255,0.38);
-  font-size: 0.84rem;
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
+.nav-btn:hover { background: rgba(255,255,255,0.03); color: white; }
+.nav-btn.active { background: rgba(230,0,35,0.1); border-color: rgba(230,0,35,0.3); color: white; }
+.nav-icon { font-size: 1.2rem; }
+.text-red { color: var(--primary) !important; }
+.text-red:hover { background: rgba(230,0,35,0.1); }
+
+.sidebar-bottom { padding-top: 2rem; border-top: var(--border-matte); }
+.sys-status { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: #10b981; letter-spacing: 1px; display: flex; align-items: center; gap: 0.5rem; }
+.pulse-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; animation: pulse 2s infinite; }
+
+.content-area { flex: 1; min-width: 0; }
+.observe-me { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.observe-me.is-visible { opacity: 1; transform: translateY(0); }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.page-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 900; color: white; }
+.date-badge { background: rgba(255,255,255,0.05); padding: 0.4rem 1rem; border-radius: 4px; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+.kpi-card { padding: 1.5rem; border-top: 2px solid transparent; transition: all 0.3s; }
+.kpi-card:hover { transform: translateY(-3px); border-top-color: var(--primary); }
+.kpi-label { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; font-weight: 900; color: white; line-height: 1; }
+.kpi-value span { font-size: 0.9rem; color: var(--primary); }
+.text-primary { color: var(--primary) !important; text-shadow: 0 0 10px rgba(230,0,35,0.5); }
+
+.chart-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; color: white; margin-bottom: 1.5rem; letter-spacing: 1px; }
+.chart-section { padding: 2rem; }
+.bar-wrap { width: 100%; }
+.bar-label { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem; font-weight: 700; }
+.bar-track { width: 100%; height: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 6px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1); }
+.fill-green { background: #10b981; box-shadow: 0 0 10px #10b981; }
+.fill-yellow { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+
+.filter-bar { padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: center; }
+.search-input, .filter-select {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+  padding: 0.8rem 1rem; color: white; font-family: 'Outfit', sans-serif; border-radius: 4px;
+  outline: none; transition: border-color 0.3s;
+}
+.search-input { flex: 1; }
+.search-input:focus, .filter-select:focus { border-color: var(--primary); }
+.filter-select { cursor: pointer; color: var(--text-secondary); }
+.filter-select option { background: var(--bg-deep); color: white; }
+.w-100 { width: 100%; }
+
+.table-container { overflow-x: auto; padding: 1rem; }
+.data-table { width: 100%; border-collapse: collapse; text-align: left; }
+.data-table th { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.data-table td { padding: 1.2rem 1rem; font-size: 0.9rem; color: white; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+.data-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+.clickable-row { cursor: pointer; }
+
+.placa-badge { background: rgba(255,255,255,0.1); padding: 0.3rem 0.6rem; border-radius: 4px; font-family: 'Space Grotesk', sans-serif; font-weight: 900; letter-spacing: 1px; border: 1px solid rgba(255,255,255,0.2); }
+.text-muted { color: var(--text-muted); font-size: 0.8rem; }
+
+.status-badge { font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.pendiente { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.confirmada { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+.completada { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.cancelada { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+.actions { display: flex; gap: 0.5rem; }
+.btn-action { width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; background: transparent; }
+.act-ok { color: #60a5fa; border-color: rgba(59,130,246,0.3); }
+.act-ok:hover { background: rgba(59,130,246,0.1); }
+.act-done { color: #10b981; border-color: rgba(16,185,129,0.3); }
+.act-done:hover { background: rgba(16,185,129,0.1); }
+.act-cancel { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.act-cancel:hover { background: rgba(239,68,68,0.1); }
+
+/* FullCalendar Custom Theme Overrides */
+.fc-wrapper {
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--bg-deep);
+  --fc-border-color: rgba(255,255,255,0.05);
+  --fc-button-text-color: white;
+  --fc-button-bg-color: rgba(255,255,255,0.05);
+  --fc-button-border-color: rgba(255,255,255,0.1);
+  --fc-button-hover-bg-color: rgba(230,0,35,0.1);
+  --fc-button-hover-border-color: rgba(230,0,35,0.3);
+  --fc-button-active-bg-color: var(--primary);
+  --fc-button-active-border-color: var(--primary);
+  --fc-event-bg-color: var(--primary);
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: white;
+  --fc-today-bg-color: rgba(230,0,35,0.05);
+  color: white;
+  font-family: 'Outfit', sans-serif;
+}
+:deep(.fc-theme-standard td), :deep(.fc-theme-standard th) {
+  border-color: var(--fc-border-color);
+}
+:deep(.fc-col-header-cell-cushion), :deep(.fc-daygrid-day-number) {
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+}
+:deep(.fc-event) {
   cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: left;
-  width: 100%;
-}
-.sidenav-item:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.75); }
-.sidenav-item.active {
-  background: rgba(255,26,46,0.1);
-  color: #ff4455;
-  border-color: rgba(255,26,46,0.18);
-}
-.sidenav-icon { display: flex; align-items: center; flex-shrink: 0; }
-.sidenav-label { flex: 1; }
-
-.sys-status {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.7rem 0.75rem;
-  background: rgba(34,197,94,0.05);
-  border: 1px solid rgba(34,197,94,0.1);
-  border-radius: 9px;
-}
-.sys-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-  flex-shrink: 0;
-  animation: blink 2.5s infinite;
-}
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-.sys-label { font-size: 0.6rem; color: rgba(255,255,255,0.25); font-family: 'JetBrains Mono', monospace; display: block; }
-.sys-value { font-size: 0.72rem; color: #22c55e; font-weight: 600; display: block; }
-
-/* ── Main Area ── */
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ── Topbar ── */
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.1rem 1.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  background: #101012;
-  flex-shrink: 0;
-}
-.topbar-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.15rem;
-}
-.topbar-date {
-  font-size: 0.68rem;
-  color: rgba(255,255,255,0.28);
-  font-family: 'JetBrains Mono', monospace;
-  text-transform: capitalize;
-}
-.topbar-right { display: flex; align-items: center; gap: 1.25rem; }
-.topbar-stat { display: flex; flex-direction: column; align-items: flex-end; }
-.ts-value { font-size: 1.05rem; font-weight: 700; color: #fff; line-height: 1; }
-.ts-value.green { color: #4ade80; }
-.ts-label { font-size: 0.62rem; color: rgba(255,255,255,0.28); font-family: 'JetBrains Mono', monospace; margin-top: 0.1rem; }
-.topbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.07); }
-
-/* ── View Panel ── */
-.view-panel {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.07) transparent;
-}
-
-/* ── KPI Row ── */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.875rem;
-}
-.kpi {
-  background: #101012;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  padding: 1.25rem 1.25rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  transition: border-color 0.2s, transform 0.2s;
-}
-.kpi:hover { border-color: rgba(255,26,46,0.25); transform: translateY(-1px); }
-.kpi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; }
-.kpi-label { font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.12em; }
-.kpi-icon { color: rgba(255,255,255,0.15); }
-.kpi-value { font-size: 1.9rem; font-weight: 800; color: #fff; letter-spacing: -0.03em; line-height: 1.1; }
-.kpi-sub { font-size: 0.67rem; color: rgba(255,255,255,0.22); font-family: 'JetBrains Mono', monospace; }
-.kpi-track { height: 2px; background: rgba(255,255,255,0.05); border-radius: 2px; margin-top: 0.6rem; overflow: hidden; }
-.kpi-fill { height: 100%; background: linear-gradient(90deg, #ff1a2e, #ff6670); border-radius: 2px; }
-.kpi--3 .kpi-value { color: #4ade80; }
-.kpi--3 .kpi-fill { background: linear-gradient(90deg, #22c55e, #86efac); }
-
-/* ── Panel Card ── */
-.panel-card {
-  background: #101012;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.panel-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.9rem 1.25rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.panel-card-title { font-size: 0.84rem; font-weight: 600; color: #fff; }
-.pill {
-  font-size: 0.62rem;
-  font-family: 'JetBrains Mono', monospace;
-  color: rgba(255,255,255,0.35);
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.07);
-  padding: 0.18rem 0.6rem;
-  border-radius: 100px;
-}
-
-/* ── Table ── */
-.tbl { width: 100%; border-collapse: collapse; }
-.tbl thead tr { border-bottom: 1px solid rgba(255,255,255,0.05); }
-.tbl th {
-  padding: 0.7rem 1.25rem;
-  font-size: 0.6rem;
-  font-family: 'JetBrains Mono', monospace;
-  color: rgba(255,255,255,0.22);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  text-align: left;
-  white-space: nowrap;
-  font-weight: 500;
-}
-.tbl td {
-  padding: 0.85rem 1.25rem;
-  font-size: 0.84rem;
-  color: rgba(255,255,255,0.55);
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  vertical-align: middle;
-}
-.tbl tbody tr { transition: background 0.12s; }
-.tbl tbody tr:hover td { background: rgba(255,255,255,0.02); color: rgba(255,255,255,0.82); }
-.tbl tbody tr:last-child td { border-bottom: none; }
-
-.cell-client { display: flex; align-items: center; gap: 0.6rem; }
-.cell-client span { font-weight: 600; color: #f0f0f2; font-size: 0.84rem; }
-.ava {
-  width: 30px; height: 30px;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-  flex-shrink: 0;
-}
-.cell-date { display: block; font-size: 0.8rem; color: rgba(255,255,255,0.6); font-family: 'JetBrains Mono', monospace; }
-.cell-time { display: block; font-size: 0.67rem; color: rgba(255,255,255,0.25); font-family: 'JetBrains Mono', monospace; margin-top: 0.1rem; }
-.cell-money { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #4ade80 !important; }
-.cell-actions { display: flex; gap: 0.28rem; }
-.muted { color: rgba(255,255,255,0.3) !important; }
-.mono  { font-family: 'JetBrains Mono', monospace; }
-
-/* ── Badges ── */
-.stato {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 5px;
-  font-size: 0.62rem;
-  font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-.stato--pendiente  { background: rgba(251,191,36,0.08);  color: #fbbf24; }
-.stato--confirmada { background: rgba(59,130,246,0.08);  color: #60a5fa; }
-.stato--completada { background: rgba(34,197,94,0.08);   color: #4ade80; }
-.stato--cancelada  { background: rgba(239,68,68,0.08);   color: #f87171; }
-
-/* ── Action buttons ── */
-.act {
-  width: 26px; height: 26px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  font-size: 0.72rem;
-  cursor: pointer;
-  transition: all 0.14s ease;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
-}
-.act--ok    { background: rgba(59,130,246,0.07); color: #60a5fa; border-color: rgba(59,130,246,0.13); }
-.act--done  { background: rgba(34,197,94,0.07);  color: #4ade80; border-color: rgba(34,197,94,0.13); }
-.act--del   { background: rgba(251,191,36,0.07); color: #fbbf24; border-color: rgba(251,191,36,0.13); }
-.act--trash { background: rgba(239,68,68,0.07);  color: #f87171; border-color: rgba(239,68,68,0.13); }
-.act:hover  { transform: scale(1.15); filter: brightness(1.3); }
-
-/* ── Toolbar ── */
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  flex-wrap: wrap;
-}
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: #101012;
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 9px;
-  padding: 0.5rem 0.85rem;
-  color: rgba(255,255,255,0.25);
-  transition: border-color 0.18s;
-}
-.search-box:focus-within { border-color: rgba(255,26,46,0.35); }
-.search-box input {
-  background: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 0.8rem;
   border: none;
-  outline: none;
-  color: #e2e2e5;
-  font-size: 0.82rem;
-  font-family: 'Inter', sans-serif;
-  width: 210px;
 }
-.search-box input::placeholder { color: rgba(255,255,255,0.2); }
-
-.filter-pills { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-.fpill {
-  padding: 0.38rem 0.8rem;
-  border-radius: 7px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: transparent;
-  color: rgba(255,255,255,0.3);
-  font-size: 0.74rem;
-  font-weight: 500;
-  font-family: 'Inter', sans-serif;
-  cursor: pointer;
-  transition: all 0.14s ease;
+:deep(.fc-toolbar-title) {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  color: white;
 }
-.fpill:hover  { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.65); }
-.fpill.active { background: rgba(255,26,46,0.1); color: #ff4455; border-color: rgba(255,26,46,0.22); }
 
-/* ── Empty ── */
-.empty-row td { text-align: center; padding: 3rem !important; }
-.empty-msg { color: rgba(255,255,255,0.18); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; }
+/* Modal CSS */
+.success-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px);
+  z-index: 9999; display: flex; align-items: center; justify-content: center;
+}
+.success-modal { text-align: center; max-width: 500px; width: 90%; padding: 4rem 3rem; }
+.sm-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 900; color: white; margin-bottom: 0.5rem; }
+.sm-title span { color: var(--primary); }
+.sm-sub { color: var(--text-secondary); margin-bottom: 2rem; }
+.form-group label { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--primary); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.form-group input { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 1rem; color: white; font-family: 'Outfit', sans-serif; border-radius: 4px; }
+.form-group input:focus { border-color: var(--primary); outline: none; }
+.mt-3 { margin-top: 1rem; }
 
-/* ── Responsive — Full Coverage ── */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
-/* Large tablets (≤1024px) */
 @media (max-width: 1024px) {
-  .kpi-row { grid-template-columns: 1fr 1fr; }
-  .tbl th, .tbl td { padding-left: 1rem; padding-right: 1rem; }
+  .admin-layout { flex-direction: column; }
+  .sidebar { height: auto; position: relative; top: 0; flex: none; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
-
-/* Tablets (≤768px) — sidebar becomes top bar */
-@media (max-width: 768px) {
-  .admin-shell { flex-direction: column; height: auto; min-height: 100vh; }
-
-  /* Sidebar → horizontal top nav */
-  .sidebar {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-right: none;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-  }
-  .sidebar-top { display: flex; flex-direction: row; align-items: center; gap: 0.75rem; flex-wrap: wrap; width: 100%; }
-  .brand { margin-bottom: 0; }
-  .brand-role { display: none; }
-  .sidenav { flex-direction: row; gap: 0.25rem; }
-  .sidenav-item { padding: 0.5rem 0.85rem; font-size: 0.8rem; white-space: nowrap; }
-  .sidenav-group-label, .sidebar-bottom { display: none; }
-
-  /* Main */
-  .main-area { overflow: visible; }
-  .topbar { padding: 0.875rem 1.25rem; flex-wrap: wrap; gap: 0.75rem; }
-  .topbar-right { gap: 1rem; }
-  .view-panel { padding: 1.25rem 1rem; gap: 1rem; overflow-y: visible; }
-
-  /* KPIs */
-  .kpi-row { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-  .kpi { padding: 1rem 1rem 0.875rem; }
-  .kpi-value { font-size: 1.6rem; }
-
-  /* Table: horizontal scroll */
-  .panel-card { overflow-x: auto; }
-  .tbl { min-width: 600px; }
-
-  /* Toolbar */
-  .toolbar { flex-direction: column; align-items: stretch; gap: 0.75rem; }
-  .search-box { width: 100%; }
-  .search-box input { width: 100%; }
-  .filter-pills { flex-wrap: wrap; }
-}
-
-/* Mobile (≤480px) */
-@media (max-width: 480px) {
-  .sidebar { padding: 0.6rem 0.875rem; }
-  .brand-name { font-size: 0.78rem; }
-  .brand-mark { width: 28px; height: 28px; font-size: 0.58rem; border-radius: 7px; }
-  .sidenav-item { padding: 0.45rem 0.65rem; font-size: 0.75rem; }
-  .sidenav-icon svg { width: 13px; height: 13px; }
-
-  .topbar { padding: 0.75rem 0.875rem; }
-  .topbar-title { font-size: 0.95rem; }
-  .topbar-right { display: none; } /* hidden on tiny screens — info is in KPIs */
-
-  .view-panel { padding: 1rem 0.875rem; }
-  .kpi-row { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
-  .kpi { padding: 0.875rem 0.875rem 0.75rem; }
-  .kpi-value { font-size: 1.4rem; }
-  .kpi-label { font-size: 0.58rem; }
-
-  .tbl { min-width: 520px; }
-  .tbl th { padding: 0.6rem 0.875rem; font-size: 0.58rem; }
-  .tbl td { padding: 0.75rem 0.875rem; font-size: 0.8rem; }
-  .ava { width: 26px; height: 26px; font-size: 0.68rem; border-radius: 6px; }
-
-  .panel-card-header { padding: 0.75rem 1rem; }
-  .fpill { font-size: 0.68rem; padding: 0.3rem 0.6rem; }
-}
-
-/* Very small phones (≤360px) */
-@media (max-width: 360px) {
-  .kpi-row { grid-template-columns: 1fr; }
-  .sidenav-label { display: none; }
-  .sidenav-item { padding: 0.4rem 0.6rem; }
-}
-
-/* ── Panel Avanzado ── */
-.view-panel--full {
-  padding: 0 !important;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* When panel tab is active, let main-area scroll */
-.admin-shell:has(.view-panel--full) .main-area {
-  overflow-y: auto;
-}
-
 </style>

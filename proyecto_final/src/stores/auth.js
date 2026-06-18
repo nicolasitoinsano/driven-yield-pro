@@ -1,14 +1,30 @@
-﻿// src/stores/auth.js
+// src/stores/auth.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-const API = 'http://localhost:8000/api'
+import { API_BASE_URL, networkErrorMessage, parseApiResponse } from '../config/api'
+
+const TOKEN_KEY = 'driven_yield_token'
 export const useAuthStore = defineStore('auth', () => {
   const user    = ref(null)
-  const token   = ref(localStorage.getItem('driven yield_token') || null)
+  const token   = ref(localStorage.getItem(TOKEN_KEY) || localStorage.getItem('driven yield_token') || null)
   const loading = ref(false)
   const error   = ref(null)
+  const initialized = ref(false)
+  let initPromise = null
   const isLoggedIn = computed(() => !!token.value && !!user.value)
   const isAdmin    = computed(() => user.value?.role === 'admin')
+
+  function normalizeUser(data) {
+    if (!data) return null
+    return {
+      ...data,
+      nombre: data.nombre || data.name || '',
+      name: data.name || data.nombre || '',
+      telefono: data.telefono || data.phone || '',
+      phone: data.phone || data.telefono || '',
+    }
+  }
+
   function authHeaders() {
     return {
       'Content-Type': 'application/json',
@@ -16,106 +32,169 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   async function init() {
-    if (!token.value) return
-    try {
-      const res = await fetch(`${API}/auth/me`, { headers: authHeaders() })
-      if (res.ok) {
-        user.value = await res.json()
-      } else {
+    if (initialized.value && (user.value || !token.value)) return user.value
+    if (initPromise) return initPromise
+
+    initPromise = (async () => {
+      try {
+        if (!token.value) {
+          initialized.value = true
+          return null
+        }
+
+        const res = await fetch(`${API_BASE_URL}/auth/me`, { headers: authHeaders() })
+        if (res.ok) {
+          user.value = normalizeUser(await res.json())
+          return user.value
+        }
+
         _clear()
+        return null
+      } catch {
+        _clear()
+        return null
+      } finally {
+        initialized.value = true
+        initPromise = null
       }
-    } catch {}
+    })()
+
+    return initPromise
   }
   async function register(nombre, username, email, contrasena, telefono = '') {
     loading.value = true; error.value = null
     try {
-      const res  = await fetch(`${API}/auth/register`, {
+      const res  = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, username, email, contrasena, telefono })
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.detail || 'Error al registrar')
+      const data = await parseApiResponse(res, 'Error al registrar')
       _save(data.token, data.user)
       return { ok: true }
     } catch (e) {
-      error.value = e.message
-      return { ok: false, error: e.message }
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
   async function login(username, contrasena) {
     loading.value = true; error.value = null
     try {
-      const res  = await fetch(`${API}/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, contrasena })
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.detail || 'Credenciales incorrectas')
+      const data = await parseApiResponse(res, 'Error al iniciar sesión')
       _save(data.token, data.user)
       return { ok: true }
     } catch (e) {
-      error.value = e.message
-      return { ok: false, error: e.message }
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
   async function loginAdmin(email, contrasena) {
     loading.value = true; error.value = null
     try {
-      const res  = await fetch(`${API}/admin/login`, {
+      const res = await fetch(`${API_BASE_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, contrasena })
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.detail || 'Credenciales incorrectas')
+      const data = await parseApiResponse(res, 'Credenciales de administrador inválidas')
       _save(data.token, data.user)
       return { ok: true }
     } catch (e) {
-      error.value = e.message
-      return { ok: false, error: e.message }
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
   async function updateProfile(datos) {
     loading.value = true; error.value = null
     try {
-      const res = await fetch(`${API}/perfil`, {
+      const payload = {
+        nombre: datos.nombre || datos.name,
+        email: datos.email,
+        telefono: datos.telefono || datos.phone,
+      }
+      const res = await fetch(`${API_BASE_URL}/perfil`, {
         method: 'PUT',
         headers: authHeaders(),
-        body: JSON.stringify(datos)
+        body: JSON.stringify(payload)
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.detail || 'Error al actualizar perfil')
-      user.value = { ...user.value, ...datos }
+      await parseApiResponse(res, 'Error al actualizar perfil')
+      user.value = normalizeUser({ ...user.value, ...payload })
       return { ok: true }
     } catch (e) {
-      error.value = e.message
-      return { ok: false, error: e.message }
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
   async function logout() {
     if (token.value) {
       try {
-        await fetch(`${API}/auth/logout`, { method: 'POST', headers: authHeaders() })
+        await fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST', headers: authHeaders() })
       } catch {}
     }
     _clear()
   }
+  async function forgotPassword(email) {
+    loading.value = true; error.value = null
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      const data = await parseApiResponse(res, 'Error al solicitar recuperación')
+      return { ok: true, message: data?.mensaje || 'Si el correo existe, recibirás instrucciones en breve.' }
+    } catch (e) {
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
+    } finally { loading.value = false }
+  }
+  async function resetPassword(resetToken, contrasena) {
+    loading.value = true; error.value = null
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetToken, contrasena })
+      })
+      const data = await parseApiResponse(res, 'Error al restablecer contraseña')
+      return { ok: true, message: data?.mensaje || 'Contraseña actualizada correctamente' }
+    } catch (e) {
+      error.value = networkErrorMessage(e)
+      return { ok: false, error: error.value }
+    } finally { loading.value = false }
+  }
   function _save(t, u) {
     token.value = t
-    user.value  = u
-    localStorage.setItem('driven yield_token', t)
+    user.value  = normalizeUser(u)
+    initialized.value = true
+    localStorage.setItem(TOKEN_KEY, t)
+    localStorage.removeItem('driven yield_token')
   }
   function _clear() {
     token.value = null
     user.value  = null
+    initialized.value = true
+    localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('driven yield_token')
   }
+  async function getUsers() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin/usuarios`, { headers: authHeaders() })
+      const data = await parseApiResponse(res, 'Error al cargar usuarios')
+      return data.map(normalizeUser)
+    } catch {
+      return []
+    }
+  }
   return {
-    user, token, loading, error,
+    user, token, loading, error, initialized,
     isLoggedIn, isAdmin,
     authHeaders, init,
-    register, login, loginAdmin, logout, updateProfile
+    register, login, loginAdmin, logout, updateProfile, forgotPassword, resetPassword, getUsers
   }
 })
