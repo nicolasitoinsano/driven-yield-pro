@@ -110,7 +110,7 @@ def get_perfil(authorization: str = Header(None)):
                    c.fecha, c.hora, c.estado, c.monto
             FROM cita c
             LEFT JOIN servicio s ON c.id_servicio = s.id_servicio
-            WHERE c.id_usuario = %s
+            WHERE c.id_usuario = %s AND c.estado != 'cancelada'
             ORDER BY c.fecha DESC
             LIMIT 10
         """, (uid,))
@@ -203,4 +203,38 @@ def update_perfil(body: UpdatePerfilBody, authorization: str = Header(None)):
                 values
             )
 
+    return {"ok": True}
+
+# ── POST /api/perfil/vehiculos ────────────────────────────────────────────────
+
+class VehiculoBody(BaseModel):
+    numero_de_placa: str
+    año: int
+    marca: str
+    modelo: str
+    color: str
+
+@router.post("/vehiculos")
+def create_vehiculo(body: VehiculoBody, authorization: str = Header(None)):
+    payload = get_current_user(authorization)
+    uid = payload["sub"]
+    role = payload.get("role", "cliente")
+    
+    if role != "cliente":
+        raise HTTPException(status_code=403, detail="Solo los clientes pueden registrar vehículos")
+        
+    with get_db() as conn:
+        cur = conn.cursor()
+        
+        # Verificar si la placa ya existe
+        cur.execute("SELECT id_vehiculo FROM vehiculo WHERE numero_de_placa = %s", (body.numero_de_placa.strip(),))
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail="Ya existe un vehículo con esa placa")
+            
+        cur.execute(
+            """INSERT INTO vehiculo (id_usuario, numero_de_placa, año, marca, modelo, color) 
+               VALUES (%s, %s, %s, %s, %s, %s)""",
+            (uid, body.numero_de_placa.strip().upper(), body.año, body.marca.strip(), body.modelo.strip(), body.color.strip())
+        )
+        conn.commit()
     return {"ok": True}

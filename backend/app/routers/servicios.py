@@ -38,3 +38,27 @@ def get_servicios():
         )
         rows = cur.fetchall()
     return [_format_servicio(r) for r in rows]
+
+@router.post("/seed")
+def seed_servicios():
+    nuevos = [
+        ("Mantenimiento de Motor", "Mantenimiento", 150000, "120 min", "Revisión general y afinación del motor"),
+        ("Cambio de Aceite y Filtro", "Mantenimiento", 80000, "45 min", "Cambio de aceite multigrado y filtro nuevo"),
+        ("Arreglo y Cambio de Bujías", "Mantenimiento", 60000, "60 min", "Reemplazo de bujías y limpieza de cables"),
+        ("Alineación y Balanceo", "Llantas", 50000, "45 min", "Alineación sencilla y balanceo de 4 ruedas"),
+        ("Revisión Sistema Eléctrico", "Diagnóstico", 40000, "60 min", "Revisión de batería, alternador y luces"),
+        ("Cambio Pastillas de Freno", "Frenos", 120000, "90 min", "Reemplazo de pastillas delanteras/traseras y purga"),
+        ("Lavado y Aspirado General", "Estética", 35000, "40 min", "Lavado exterior con cera y aspirado profundo de interiores"),
+        ("Revisión General de Viaje", "Diagnóstico", 50000, "60 min", "Chequeo de 20 puntos de seguridad antes de viajar")
+    ]
+    with get_db() as conn:
+        cur = conn.cursor()
+        for n, c, p, d, desc in nuevos:
+            cur.execute("SELECT id_servicio FROM servicio WHERE nombre = %s", (n,))
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO servicio (nombre, categoria, precio, duracion, descripcion, activo) VALUES (%s, %s, %s, %s, %s, 1)",
+                    (n, c, p, d, desc)
+                )
+        conn.commit()
+    return {"ok": True}

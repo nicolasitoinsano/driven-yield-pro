@@ -17,7 +17,7 @@
           <div class="user-avatar">{{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}</div>
           <div class="user-info">
             <span class="user-name">{{ user?.name }}</span>
-            <span class="user-role"><span class="pulse-dot"></span> OPERADOR AUTORIZADO</span>
+            <span class="user-role"><span class="pulse-dot"></span> {{ user?.role === 'admin' ? 'ADMINISTRADOR' : 'CLIENTE' }}</span>
           </div>
         </div>
       </div>
@@ -74,7 +74,37 @@
             <div class="panel-header">
               <h2 class="panel-title">FLOTA <span>REGISTRADA</span></h2>
               <p class="panel-desc">Vehículos vinculados a este perfil operativo.</p>
+              <button class="btn btn-ghost mt-3" style="border: 1px solid rgba(255,255,255,0.2);" @click="showAddVehicle = !showAddVehicle">
+                + AGREGAR VEHÍCULO
+              </button>
             </div>
+            
+            <transition name="fade">
+              <div v-if="showAddVehicle" class="matte-card form-container" style="margin-bottom: 2rem;">
+                <h3 style="color: white; margin-bottom: 1rem;">Registrar Vehículo</h3>
+                <div class="form-group">
+                  <label>PLACA</label>
+                  <input v-model="newVehicle.placa" type="text" placeholder="AAA-123" />
+                </div>
+                <div class="form-group">
+                  <label>AÑO</label>
+                  <input v-model="newVehicle.anio" type="number" placeholder="2022" />
+                </div>
+                <div class="form-group">
+                  <label>MARCA</label>
+                  <input v-model="newVehicle.marca" type="text" placeholder="Toyota" />
+                </div>
+                <div class="form-group">
+                  <label>MODELO</label>
+                  <input v-model="newVehicle.modelo" type="text" placeholder="Corolla" />
+                </div>
+                <div class="form-group">
+                  <label>COLOR</label>
+                  <input v-model="newVehicle.color" type="text" placeholder="Blanco" />
+                </div>
+                <button class="btn btn-primary mt-3" @click="addVehicle">GUARDAR VEHÍCULO</button>
+              </div>
+            </transition>
 
             <div v-if="vehiculos.length === 0" class="empty-state matte-card">
               <span class="empty-icon">∅</span>
@@ -95,8 +125,8 @@
                   <p class="v-color">Color: {{ v.color }}</p>
                 </div>
                 <div class="v-footer">
-                  <router-link :to="{ path: '/agendar', query: { placa: v.numero_de_placa } }" class="btn btn-ghost btn-sm">
-                    NUEVO SERVICIO
+                  <router-link :to="{ path: '/agendar', query: { vehiculoId: v.id_vehiculo } }" class="btn btn-ghost btn-sm">
+                    AGENDAR SERVICIO
                   </router-link>
                 </div>
               </div>
@@ -106,7 +136,7 @@
           <!-- TAB: HISTORIAL CITAS -->
           <div v-else-if="activeTab === 'citas'" key="citas" class="tab-panel">
             <div class="panel-header">
-              <h2 class="panel-title">REGISTRO DE <span>TELEMETRÍA</span></h2>
+              <h2 class="panel-title">HISTORIAL DE <span>CITAS</span></h2>
               <p class="panel-desc">Historial completo de intervenciones mecánicas.</p>
             </div>
 
@@ -156,20 +186,38 @@
                 <label>TELÉFONO</label>
                 <input v-model="editForm.telefono" type="tel" />
               </div>
+              
               <hr class="form-divider" />
-              <p class="form-note">Solo llena esto si deseas cambiar tu contraseña:</p>
-              <div class="form-group">
-                <label>CLAVE ACTUAL</label>
-                <input v-model="editForm.contrasena_actual" type="password" placeholder="••••••••" />
-              </div>
-              <div class="form-group">
-                <label>NUEVA CLAVE</label>
-                <input v-model="editForm.contrasena_nueva" type="password" placeholder="••••••••" />
-              </div>
+              
+              <transition name="fade">
+                <div v-if="showPasswordChange" class="password-change-box" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(230,0,35,0.3); border-radius: 8px;">
+                  <h4 style="color: white; margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.2rem;">🔒</span> CAMBIO DE CREDENCIALES
+                  </h4>
+                  <p class="form-note">Por seguridad, ingrese su clave actual para habilitar el cambio:</p>
+                  <div class="form-group">
+                    <label>CLAVE ACTUAL</label>
+                    <input v-model="editForm.contrasena_actual" type="password" placeholder="••••••••" />
+                  </div>
+                  
+                  <transition name="fade">
+                    <div class="form-group" v-if="editForm.contrasena_actual.length > 3">
+                      <label style="color: var(--primary);">NUEVA CLAVE SEGURA</label>
+                      <input v-model="editForm.contrasena_nueva" type="password" placeholder="••••••••" />
+                    </div>
+                  </transition>
+                </div>
+              </transition>
 
-              <button class="btn btn-primary" style="margin-top: 1rem" @click="saveProfile">
-                ACTUALIZAR EXPEDIENTE
-              </button>
+              <div class="form-actions" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+                <button class="btn btn-primary" @click="saveProfile" :disabled="!hasChanges">
+                  ACTUALIZAR DATOS
+                </button>
+                
+                <button v-if="!showPasswordChange" class="btn btn-ghost" style="border: 1px dashed rgba(255,255,255,0.2); width: 100%; transition: all 0.3s;" @click="showPasswordChange = true">
+                  <span style="font-size: 1.2rem; margin-right: 8px;">🔒</span> MODIFICAR CONTRASEÑA DE ACCESO
+                </button>
+              </div>
             </div>
           </div>
 
@@ -205,6 +253,21 @@ const editForm = ref({
   nombre: '', email: '', telefono: '', contrasena_actual: '', contrasena_nueva: ''
 })
 
+const originalData = ref({
+  nombre: '', email: '', telefono: ''
+})
+
+const showPasswordChange = ref(false)
+const showAddVehicle = ref(false)
+const newVehicle = ref({ placa: '', anio: '', marca: '', modelo: '', color: '' })
+
+const hasChanges = computed(() => {
+  return editForm.value.nombre !== originalData.value.nombre ||
+         editForm.value.email !== originalData.value.email ||
+         editForm.value.telefono !== originalData.value.telefono ||
+         (editForm.value.contrasena_nueva && editForm.value.contrasena_actual)
+})
+
 onMounted(async () => {
   if (!user.value) await auth.init()
   if (user.value?.role === 'admin') {
@@ -215,6 +278,10 @@ onMounted(async () => {
   editForm.value.nombre = user.value?.name || ''
   editForm.value.email = user.value?.email || ''
   editForm.value.telefono = user.value?.phone || ''
+  
+  originalData.value.nombre = editForm.value.nombre
+  originalData.value.email = editForm.value.email
+  originalData.value.telefono = editForm.value.telefono
 
   await citasStore.fetchCitas()
   await fetchPerfilData()
@@ -270,14 +337,53 @@ async function saveProfile() {
       body: JSON.stringify(payload)
     })
     if (res.ok) {
-      toast.success('Expediente actualizado.')
+      toast.success('Datos actualizados.')
       auth.user.name = payload.nombre
       auth.user.email = payload.email
+      auth.user.phone = payload.telefono
+      originalData.value.nombre = payload.nombre
+      originalData.value.email = payload.email
+      originalData.value.telefono = payload.telefono
       editForm.value.contrasena_actual = ''
       editForm.value.contrasena_nueva = ''
+      showPasswordChange.value = false
     } else {
       const err = await res.json()
       toast.error(err.detail || 'Error al actualizar.')
+    }
+  } catch (e) {
+    toast.error('Error de conexión.')
+  }
+}
+
+async function addVehicle() {
+  if (!newVehicle.value.placa || !newVehicle.value.anio || !newVehicle.value.marca || !newVehicle.value.modelo) {
+    toast.error('Complete los datos principales del vehículo.')
+    return
+  }
+  
+  try {
+    const payload = {
+      numero_de_placa: newVehicle.value.placa,
+      año: parseInt(newVehicle.value.anio),
+      marca: newVehicle.value.marca,
+      modelo: newVehicle.value.modelo,
+      color: newVehicle.value.color
+    }
+    const res = await fetch(`${API_BASE_URL}/perfil/vehiculos`, {
+      method: 'POST',
+      headers: auth.authHeaders(),
+      body: JSON.stringify(payload)
+    })
+    
+    if (res.ok) {
+      toast.success('Vehículo registrado.')
+      showAddVehicle.value = false
+      newVehicle.value = { placa: '', anio: '', marca: '', modelo: '', color: '' }
+      await fetchPerfilData() // Recargar flota
+    } else {
+      const err = await res.json()
+      toast.error(err.detail || 'Error al registrar vehículo.')
     }
   } catch (e) {
     toast.error('Error de conexión.')

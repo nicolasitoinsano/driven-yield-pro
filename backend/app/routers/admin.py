@@ -146,6 +146,7 @@ def get_all_citas(authorization: str = Header(None)):
             LEFT JOIN vehiculo v ON c.id_vehiculo = v.id_vehiculo
             LEFT JOIN servicio s ON c.id_servicio = s.id_servicio
             LEFT JOIN mecanico m ON c.id_mecanico = m.id_mecanico
+            WHERE c.estado != 'cancelada'
             ORDER BY c.fecha DESC, c.hora DESC
         """)
         rows = cur.fetchall()
@@ -166,6 +167,39 @@ def get_usuarios(authorization: str = Header(None)):
     for r in rows:
         r["role"] = "cliente"
     return rows
+
+@router.get("/usuarios/{uid}")
+def get_usuario_detalle(uid: int, authorization: str = Header(None)):
+    require_admin(authorization)
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_usuario AS id, nombre, username, email, telefono FROM usuario WHERE id_usuario = %s", (uid,))
+        user_info = cur.fetchone()
+        if not user_info:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            
+        cur.execute("SELECT id_vehiculo AS id, marca, modelo, año, color, numero_de_placa AS placa FROM vehiculo WHERE id_usuario = %s", (uid,))
+        vehiculos = cur.fetchall()
+        
+        cur.execute("""
+            SELECT c.id_cita AS id, s.nombre AS servicio, c.fecha, c.hora, c.estado, c.monto,
+                   CONCAT(v.marca, ' ', v.modelo) AS vehiculo, v.numero_de_placa AS placa
+            FROM cita c
+            LEFT JOIN servicio s ON c.id_servicio = s.id_servicio
+            LEFT JOIN vehiculo v ON c.id_vehiculo = v.id_vehiculo
+            WHERE c.id_usuario = %s
+            ORDER BY c.fecha DESC, c.hora DESC
+        """, (uid,))
+        citas = cur.fetchall()
+        
+    for c in citas:
+        c = _format_cita_row(c)
+        
+    return {
+        "info": user_info,
+        "vehiculos": vehiculos,
+        "citas": citas
+    }
 
 
 # ── GET /api/admin/stats ──────────────────────────────────────────────────────

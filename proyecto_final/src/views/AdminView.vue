@@ -76,16 +76,65 @@
             </div>
 
             <div class="chart-section matte-card mt-4" v-if="!loadingStats">
-              <h3 class="chart-title">DISTRIBUCIÓN DE SERVICIOS</h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="chart-title" style="margin: 0;">REPORTE DE INGRESOS Y ÓRDENES</h3>
+                <div style="display: flex; gap: 1rem;">
+                  <select v-model="ingresosFiltro" class="filter-select">
+                    <option value="dia">Hoy</option>
+                    <option value="semana">Esta Semana</option>
+                    <option value="mes">Este Mes</option>
+                    <option value="anio">Este Año</option>
+                    <option value="historico">Histórico Total</option>
+                  </select>
+                  <button class="btn btn-primary" @click="downloadPDF">↓ EXPORTAR PDF</button>
+                </div>
+              </div>
+
+              <!-- Ingresos Filtered -->
+              <div class="kpi-card matte-card" style="margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+                <p class="kpi-label">INGRESOS GENERADOS ({{ ingresosFiltro.toUpperCase() }})</p>
+                <h3 class="kpi-value text-green">${{ ingresosFiltrados.toLocaleString('es-CO') }} <span>COP</span></h3>
+              </div>
+
+              <h3 class="chart-title">DISTRIBUCIÓN DE ESTADOS ({{ ingresosFiltro.toUpperCase() }})</h3>
               <div class="bar-chart">
                 <div class="bar-wrap">
-                  <div class="bar-label">Completadas ({{ Math.round((stats.citas_completadas / stats.citas_total)*100) || 0 }}%)</div>
-                  <div class="bar-track"><div class="bar-fill fill-green" :style="`width: ${(stats.citas_completadas / stats.citas_total)*100}%`"></div></div>
+                  <div class="bar-label">Completadas ({{ Math.round((citasCompletadasFiltro / citasTotalFiltro)*100) || 0 }}%)</div>
+                  <div class="bar-track"><div class="bar-fill fill-green" :style="`width: ${(citasCompletadasFiltro / citasTotalFiltro)*100}%`"></div></div>
                 </div>
                 <div class="bar-wrap mt-3">
-                  <div class="bar-label">Pendientes ({{ Math.round((stats.citas_pendientes / stats.citas_total)*100) || 0 }}%)</div>
-                  <div class="bar-track"><div class="bar-fill fill-yellow" :style="`width: ${(stats.citas_pendientes / stats.citas_total)*100}%`"></div></div>
+                  <div class="bar-label">Pendientes ({{ Math.round((citasPendientesFiltro / citasTotalFiltro)*100) || 0 }}%)</div>
+                  <div class="bar-track"><div class="bar-fill fill-yellow" :style="`width: ${(citasPendientesFiltro / citasTotalFiltro)*100}%`"></div></div>
                 </div>
+              </div>
+              
+              <h3 class="chart-title mt-4" style="margin-top: 3rem;">DETALLE DE ÓRDENES ({{ ingresosFiltro.toUpperCase() }})</h3>
+              <div class="table-container matte-card mt-3">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>FECHA / HORA</th>
+                      <th>CLIENTE</th>
+                      <th>VEHÍCULO</th>
+                      <th>SERVICIO</th>
+                      <th>VALOR</th>
+                      <th>ESTADO</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="c in citasFiltradasPeriodo" :key="c.id">
+                      <td>{{ c.fecha }} <br><span class="text-muted">{{ c.hora }}</span></td>
+                      <td>{{ c.cliente }}</td>
+                      <td><span class="placa-badge">{{ c.placa }}</span></td>
+                      <td>{{ c.servicio }}</td>
+                      <td>${{ c.monto?.toLocaleString('es-CO') || 0 }}</td>
+                      <td><span :class="['status-badge', c.estado]">{{ c.estado }}</span></td>
+                    </tr>
+                    <tr v-if="citasFiltradasPeriodo.length === 0">
+                      <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hay citas registradas en este periodo.</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -158,14 +207,14 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="u in clientes" :key="u.id">
+                  <tr v-for="u in clientes" :key="u.id" @click="openClienteModal(u.id)" class="clickable-row">
                     <td><strong>{{ u.name || u.nombre }}</strong></td>
                     <td class="text-muted">{{ u.username }}</td>
                     <td>{{ u.email }} <br><span class="text-muted">{{ u.phone || u.telefono || 'Sin teléfono' }}</span></td>
                     <td><span class="status-badge completada">CLIENTE</span></td>
                   </tr>
                   <tr v-if="clientes.length === 0">
-                    <td colspan="4" class="text-center py-4">Cargando base de datos...</td>
+                    <td colspan="4" class="text-center py-4">No hay clientes registrados.</td>
                   </tr>
                 </tbody>
               </table>
@@ -209,6 +258,64 @@
       </div>
     </transition>
 
+    <!-- Cliente Detail Modal -->
+    <transition name="modal-anim">
+      <div v-if="showClienteModal" class="success-overlay" @click.self="showClienteModal = false">
+        <div class="success-modal matte-card" style="max-width: 800px; text-align: left; max-height: 90vh; overflow-y: auto;">
+          <h2 class="sm-title">EXPEDIENTE <span>CLIENTE</span></h2>
+          <p class="sm-sub" v-if="clienteDetalle">Información confidencial de {{ clienteDetalle.info.nombre }}</p>
+          
+          <div v-if="loadingCliente" class="loading-state">CARGANDO...</div>
+          <div v-else-if="clienteDetalle">
+            <!-- Credenciales (sin contraseñas) -->
+            <div class="mb-4">
+              <h4 style="color:var(--primary); margin-bottom: 10px;">CREDENCIALES</h4>
+              <div class="sm-details">
+                <div class="sm-row"><span>NOMBRE:</span> <strong>{{ clienteDetalle.info.nombre }}</strong></div>
+                <div class="sm-row"><span>USUARIO:</span> <strong>{{ clienteDetalle.info.username }}</strong></div>
+                <div class="sm-row"><span>EMAIL:</span> <strong>{{ clienteDetalle.info.email }}</strong></div>
+                <div class="sm-row"><span>TELÉFONO:</span> <strong>{{ clienteDetalle.info.telefono || 'N/A' }}</strong></div>
+              </div>
+            </div>
+
+            <!-- Vehículos -->
+            <div class="mb-4">
+              <h4 style="color:var(--primary); margin-bottom: 10px;">VEHÍCULOS</h4>
+              <div v-if="clienteDetalle.vehiculos.length === 0" class="text-muted">Sin vehículos.</div>
+              <div v-else class="vehicles-mini-grid" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div v-for="v in clienteDetalle.vehiculos" :key="v.id" class="sm-details" style="margin-bottom:0">
+                  <div class="sm-row"><span>MARCA:</span> <strong>{{ v.marca }} {{ v.modelo }}</strong></div>
+                  <div class="sm-row"><span>AÑO:</span> <strong>{{ v.año }}</strong></div>
+                  <div class="sm-row"><span>PLACA:</span> <strong>{{ v.placa || 'SIN PLACA' }}</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Citas -->
+            <div class="mb-4">
+              <h4 style="color:var(--primary); margin-bottom: 10px;">ÓRDENES DE SERVICIO</h4>
+              <div v-if="clienteDetalle.citas.length === 0" class="text-muted">Sin historial de citas.</div>
+              <div v-else class="citas-mini-list" style="display:flex; flex-direction:column; gap:10px;">
+                <div v-for="c in clienteDetalle.citas" :key="c.id" class="sm-details" style="margin-bottom:0">
+                  <div style="display:flex; justify-content:space-between;">
+                    <strong>{{ c.fecha }} | {{ c.hora }}</strong>
+                    <span :class="['status-badge', c.estado]">{{ c.estado }}</span>
+                  </div>
+                  <div class="mt-2">{{ c.servicio }}</div>
+                  <div class="text-muted" style="font-size: 0.8rem;">Vehículo: {{ c.vehiculo }} ({{ c.placa }})</div>
+                  <div class="text-muted" style="font-size: 0.8rem;">Monto: ${{ c.monto }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="sm-actions" style="margin-top: 2rem;">
+            <button class="btn btn-ghost" @click="showClienteModal = false">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </main>
 </template>
 
@@ -225,6 +332,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import esLocale from '@fullcalendar/core/locales/es'
 
 const auth = useAuthStore()
 const citasStore = useCitasStore()
@@ -239,6 +347,59 @@ const mecanicosList = ref([])
 const citaSearch = ref('')
 const citaFilter = ref('todos')
 
+// Ingresos Filter state
+const ingresosFiltro = ref('mes')
+
+function isSameWeek(d1, d2) {
+  const diff = d1 - d2;
+  return diff >= 0 && diff < 7 * 24 * 60 * 60 * 1000;
+}
+
+const citasFiltradasPeriodo = computed(() => {
+  const hoy = new Date()
+  return citasStore.citas.filter(c => {
+    if(!c.fecha) return false
+    const d = new Date(c.fecha + 'T00:00:00')
+    if(ingresosFiltro.value === 'dia') return d.toDateString() === hoy.toDateString()
+    if(ingresosFiltro.value === 'mes') return d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear()
+    if(ingresosFiltro.value === 'anio') return d.getFullYear() === hoy.getFullYear()
+    if(ingresosFiltro.value === 'semana') return isSameWeek(hoy, d)
+    return true // historico
+  })
+})
+
+const ingresosFiltrados = computed(() => {
+  return citasFiltradasPeriodo.value
+    .filter(c => c.estado === 'completada')
+    .reduce((sum, c) => sum + (c.monto || 0), 0)
+})
+
+const citasTotalFiltro = computed(() => citasFiltradasPeriodo.value.length)
+const citasCompletadasFiltro = computed(() => citasFiltradasPeriodo.value.filter(c => c.estado === 'completada').length)
+const citasPendientesFiltro = computed(() => citasFiltradasPeriodo.value.filter(c => c.estado === 'pendiente').length)
+
+async function downloadPDF() {
+  const pwd = prompt('Para exportar el reporte de ingresos, ingrese su contraseña de administrador:')
+  if (!pwd) return
+  
+  // Verify password using admin login endpoint
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: auth.user.email, contrasena: pwd })
+    })
+    if (res.ok) {
+      toast.success('Validación exitosa. Generando PDF...')
+      setTimeout(() => window.print(), 500)
+    } else {
+      toast.error('Contraseña incorrecta. Acceso denegado.')
+    }
+  } catch (e) {
+    toast.error('Error de red al verificar credenciales.')
+  }
+}
+
 function setTab(tab) {
   activeTab.value = tab
   if (tab === 'calendario') {
@@ -252,6 +413,11 @@ function setTab(tab) {
 const showEditModal = ref(false)
 const editingCitaId = ref(null)
 const editForm = ref({ fecha: '', hora: '', id_mecanico: '' })
+
+// Modal Cliente state
+const showClienteModal = ref(false)
+const loadingCliente = ref(false)
+const clienteDetalle = ref(null)
 
 onMounted(async () => {
   if (!auth.user) await auth.init()
@@ -282,6 +448,7 @@ const calendarOptions = ref({
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay'
   },
+  locale: esLocale,
   eventClick: (info) => {
     const cita = citas.value.find(x => x.id == info.event.id)
     if(cita) openEditModal(cita)
@@ -316,12 +483,9 @@ async function fetchMecanicos() {
 async function fetchStats() {
   loadingStats.value = true
   try {
-    stats.value = {
-      usuarios: 15,
-      citas_total: 45,
-      citas_pendientes: 12,
-      citas_completadas: 33,
-      ingresos: 4500000
+    const res = await fetch(`${API_BASE_URL}/admin/stats`, { headers: auth.authHeaders() })
+    if (res.ok) {
+      stats.value = await res.json()
     }
   } catch (e) {
     console.error(e)
@@ -332,12 +496,30 @@ async function fetchStats() {
 
 async function fetchClientes() {
   try {
-    clientes.value = [
-      { id: 101, name: "Carlos Perez", username: "cperez", email: "carlos@mail.com", phone: "3001234567" },
-      { id: 102, name: "Maria Gonzalez", username: "mgonzalez", email: "maria@mail.com", phone: "3129876543" }
-    ]
+    const res = await fetch(`${API_BASE_URL}/admin/usuarios`, { headers: auth.authHeaders() })
+    if (res.ok) {
+      clientes.value = await res.json()
+    }
   } catch (e) {
     console.error(e)
+  }
+}
+
+async function openClienteModal(uid) {
+  showClienteModal.value = true
+  loadingCliente.value = true
+  clienteDetalle.value = null
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/usuarios/${uid}`, { headers: auth.authHeaders() })
+    if (res.ok) {
+      clienteDetalle.value = await res.json()
+    } else {
+      toast.error('No se pudo cargar detalles del cliente')
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loadingCliente.value = false
   }
 }
 
@@ -369,13 +551,28 @@ function openEditModal(cita) {
 }
 
 async function submitEdit() {
-  // Demo Bypass: Actualizamos localmente
   const cita = citasStore.citas.find(c => c.id === editingCitaId.value)
   if (cita) {
-    cita.fecha = editForm.value.fecha
-    cita.hora = editForm.value.hora
-    if (editForm.value.id_mecanico) cita.id_mecanico = editForm.value.id_mecanico
-    toast.success('Cita actualizada (Google Calendar Sync Ok)')
+    try {
+      const res = await fetch(`${API_BASE_URL}/citas/${editingCitaId.value}`, {
+        method: 'PUT',
+        headers: auth.authHeaders(),
+        body: JSON.stringify({
+          cliente: cita.cliente,
+          vehiculo: cita.vehiculo,
+          servicio: cita.servicio,
+          fecha: editForm.value.fecha,
+          hora: editForm.value.hora,
+          id_mecanico: editForm.value.id_mecanico ? parseInt(editForm.value.id_mecanico) : null
+        })
+      })
+      if (res.ok) {
+        toast.success('Cita actualizada exitosamente')
+        citasStore.fetchCitas()
+      } else {
+        toast.error('Error actualizando cita')
+      }
+    } catch(e) { toast.error('Error de red') }
   }
   showEditModal.value = false
 }
@@ -497,39 +694,78 @@ function handleLogout() {
 .fc-wrapper {
   --fc-page-bg-color: transparent;
   --fc-neutral-bg-color: var(--bg-deep);
-  --fc-border-color: rgba(255,255,255,0.05);
+  --fc-border-color: rgba(220, 38, 38, 0.15); /* Subtle red border */
   --fc-button-text-color: white;
-  --fc-button-bg-color: rgba(255,255,255,0.05);
-  --fc-button-border-color: rgba(255,255,255,0.1);
-  --fc-button-hover-bg-color: rgba(230,0,35,0.1);
-  --fc-button-hover-border-color: rgba(230,0,35,0.3);
-  --fc-button-active-bg-color: var(--primary);
-  --fc-button-active-border-color: var(--primary);
-  --fc-event-bg-color: var(--primary);
-  --fc-event-border-color: transparent;
-  --fc-event-text-color: white;
-  --fc-today-bg-color: rgba(230,0,35,0.05);
+  --fc-button-bg-color: #1a0a0a; /* Very dark black/red */
+  --fc-button-border-color: rgba(220, 38, 38, 0.3);
+  --fc-button-hover-bg-color: rgba(220, 38, 38, 0.2);
+  --fc-button-hover-border-color: rgba(220, 38, 38, 0.6);
+  --fc-button-active-bg-color: #dc2626; /* Strong Red */
+  --fc-button-active-border-color: #dc2626;
+  --fc-today-bg-color: rgba(220, 38, 38, 0.08); /* Faint red today background */
   color: white;
   font-family: 'Outfit', sans-serif;
 }
 :deep(.fc-theme-standard td), :deep(.fc-theme-standard th) {
   border-color: var(--fc-border-color);
 }
+:deep(.fc-col-header-cell) {
+  background-color: #1a0505;
+}
 :deep(.fc-col-header-cell-cushion), :deep(.fc-daygrid-day-number) {
-  color: var(--text-secondary);
+  color: #ff9999;
   font-family: 'Space Grotesk', sans-serif;
 }
 :deep(.fc-event) {
   cursor: pointer;
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 0.8rem;
-  border: none;
+  border-radius: 6px !important;
+  padding: 4px 6px;
+  font-size: 0.75rem !important;
+  border: 1px solid rgba(220, 38, 38, 0.3) !important;
+  background-color: #1a0a0a !important; /* Black background for events */
+  color: #ffcccc !important; /* Redish text */
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+:deep(.fc-event:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
+  border-color: #dc2626 !important;
+}
+/* Multiline Events Fix */
+:deep(.fc-event),
+:deep(.fc-daygrid-event),
+:deep(.fc-event-main),
+:deep(.fc-event-title),
+:deep(.fc-event-main-frame) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow: visible !important;
+  display: block !important;
+  height: auto !important;
+  min-height: max-content !important;
+  line-height: 1.3 !important;
+}
+:deep(.fc-daygrid-event-harness),
+:deep(.fc-daygrid-event-harness-abs) {
+  height: auto !important;
 }
 :deep(.fc-toolbar-title) {
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   color: white;
+  font-size: 1.5rem !important;
+  letter-spacing: -0.5px;
+}
+:deep(.fc-button) {
+  border-radius: 6px !important;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Modal CSS */
@@ -552,6 +788,40 @@ function handleLogout() {
 @media (max-width: 1024px) {
   .admin-layout { flex-direction: column; }
   .sidebar { height: auto; position: relative; top: 0; flex: none; }
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .sidebar, .topbar, .filter-bar, .actions, .modal-overlay, .success-overlay, button {
+    display: none !important;
+  }
+  .content-area {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  .admin-root {
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+  }
+  .chart-section {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    color: black !important;
+  }
+  h1, h2, h3, p, span, div, td, th {
+    color: black !important;
+    text-shadow: none !important;
+  }
+  .bar-track { background: #eee !important; border: 1px solid #ccc !important; }
+  .bar-fill.fill-green { background-color: #00ff88 !important; }
+  .bar-fill.fill-yellow { background-color: #ffcc00 !important; }
+  .text-green { color: #00cc6d !important; }
+  .data-table th { background: #f0f0f0 !important; border-bottom: 2px solid #ccc !important; }
+  .data-table td { border-bottom: 1px solid #ddd !important; }
+  .matte-card { border: none !important; box-shadow: none !important; background: transparent !important; }
 }
 </style>

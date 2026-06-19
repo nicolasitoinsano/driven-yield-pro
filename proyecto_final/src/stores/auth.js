@@ -6,7 +6,7 @@ import { API_BASE_URL, networkErrorMessage, parseApiResponse } from '../config/a
 const TOKEN_KEY = 'driven_yield_token'
 export const useAuthStore = defineStore('auth', () => {
   const user    = ref(null)
-  const token   = ref(localStorage.getItem(TOKEN_KEY) || localStorage.getItem('driven yield_token') || null)
+  const token   = ref(sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || localStorage.getItem('driven yield_token') || null)
   const loading = ref(false)
   const error   = ref(null)
   const initialized = ref(false)
@@ -172,13 +172,16 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = t
     user.value  = normalizeUser(u)
     initialized.value = true
-    localStorage.setItem(TOKEN_KEY, t)
+    sessionStorage.setItem(TOKEN_KEY, t)
+    // Limpiar localStorage viejo si existe
+    localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('driven yield_token')
   }
   function _clear() {
     token.value = null
     user.value  = null
     initialized.value = true
+    sessionStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('driven yield_token')
   }

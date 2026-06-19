@@ -74,7 +74,7 @@
             </div>
 
             <button class="btn btn-primary btn-full" @click="handleLogin" :disabled="auth.loading">
-              {{ auth.loading ? 'VALIDANDO...' : 'ESTABLECER CONEXIÓN →' }}
+              {{ auth.loading ? 'VALIDANDO...' : 'INICIAR SESIÓN' }}
             </button>
 
             <div class="divider"><span>O</span></div>
@@ -164,7 +164,7 @@
             </div>
 
             <button class="btn btn-primary btn-full" @click="handleAdminLogin" :disabled="auth.loading">
-              {{ auth.loading ? 'VALIDANDO...' : 'INICIAR PROTOCOLO ROOT →' }}
+              {{ auth.loading ? 'VALIDANDO...' : 'INICIAR SESIÓN' }}
             </button>
           </div>
 
@@ -231,7 +231,7 @@ async function handleLogin() {
   const res = await auth.login(loginForm.username, loginForm.password)
   if (!res.ok) { toast.error(res.error); return }
   toast.success(`Acceso concedido, ${auth.user.nombre}.`)
-  router.push(auth.user.role === 'admin' ? '/admin' : '/')
+  window.location.href = auth.user.role === 'admin' ? '/admin' : '/'
 }
 
 async function handleAdminLogin() {
@@ -239,7 +239,7 @@ async function handleAdminLogin() {
   const res = await auth.loginAdmin(adminForm.email, adminForm.password)
   if (!res.ok) { toast.error(res.error); return }
   toast.success(`Privilegios elevados confirmados, ${auth.user.nombre}.`)
-  router.push('/admin')
+  window.location.href = '/admin'
 }
 
 async function handleRegister() {

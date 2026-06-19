@@ -10,7 +10,14 @@ export async function parseApiResponse(res, fallbackMessage = 'Error en la solic
   }
 
   if (!res.ok) {
-    const message = data?.detail || data?.mensaje || fallbackMessage
+    let message = data?.mensaje || fallbackMessage
+    if (data?.detail) {
+      if (Array.isArray(data.detail)) {
+        message = data.detail.map(e => e.msg).join(', ')
+      } else {
+        message = data.detail
+      }
+    }
     const error = new Error(message)
     error.status = res.status
     throw error

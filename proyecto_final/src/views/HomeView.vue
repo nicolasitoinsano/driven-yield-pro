@@ -4,7 +4,7 @@
     <!-- FUTURISTIC GLOW ORB BACKGROUND -->
     <div class="ambient-glow" :style="glowStyle"></div>
 
-    <!-- 1. HERO PARALLAX (3D Hover + Scroll) -->
+    <!-- 1. HERO PARALLAX -->
     <section class="hero-parallax">
       <div class="hero-bg" :style="{ transform: `translateY(${scrollY * 0.4}px) scale(1.05)` }"></div>
       <div class="hero-grid-overlay"></div>
@@ -12,22 +12,22 @@
       <div class="hero-content" :style="{ transform: `translate3d(${mouseX * -30}px, ${scrollY * 0.15 + (mouseY * -30)}px, 0)` }">
         <div class="hero-eyebrow fade-up" style="animation-delay: 0.2s;">
           <span class="eyebrow-line"></span>
-          TALLER AUTOMOTRIZ DE PRÓXIMA GENERACIÓN
+          TALLER AUTOMOTRIZ DE CONFIANZA
           <span class="eyebrow-line"></span>
         </div>
         
         <h1 class="hero-title fade-up" style="animation-delay: 0.4s;">
-          REDEFINIENDO EL<br />
+          MÁXIMO<br />
           <span class="glitch" data-text="RENDIMIENTO">RENDIMIENTO</span>
         </h1>
         
         <p class="hero-desc fade-up" style="animation-delay: 0.6s;">
-          Bienvenido al estándar definitivo. Combina precisión técnica con tecnología de diagnóstico de vanguardia para una experiencia automotriz sin precedentes.
+          Cuidamos tu vehículo con la atención y el profesionalismo que merece. Desde mantenimientos preventivos hasta reparaciones complejas.
         </p>
         
         <div class="hero-actions fade-up" style="animation-delay: 0.8s;">
-          <router-link to="/agendar" class="btn btn-primary">Inicializar Sistema</router-link>
-          <button class="btn btn-ghost" @click="scrollToFeatures">Escanear Características</button>
+          <router-link v-if="user" to="/agendar" class="btn btn-primary">Agenda aquí</router-link>
+          <button class="btn btn-ghost" @click="scrollToFeatures">Conoce más de nosotros</button>
         </div>
       </div>
       
@@ -37,17 +37,17 @@
       </div>
     </section>
 
-    <!-- 2. FEATURES MATTE (Intersection Observer) -->
+    <!-- 2. FEATURES (Conoce más de nosotros) -->
     <section class="features" id="features">
       <div class="section-header observe-me">
-        <h2>Ingeniería de <span>Precisión</span></h2>
-        <p>No reparamos autos, optimizamos máquinas. Conoce nuestra infraestructura.</p>
+        <h2>Servicios <span>Generales</span></h2>
+        <p>Soluciones integrales para mantener tu auto seguro y en movimiento.</p>
       </div>
 
       <div class="features-grid">
         <div class="matte-card feature-card observe-me" v-for="(f, i) in features" :key="i" :style="{ transitionDelay: `${i * 0.15}s` }">
           <div class="feature-icon-wrap">
-            <div class="feature-icon">{{ f.icon }}</div>
+            <div class="feature-icon" v-html="f.icon"></div>
             <div class="icon-glow"></div>
           </div>
           <h3>{{ f.title }}</h3>
@@ -57,49 +57,56 @@
       </div>
     </section>
 
-    <!-- 3. SERVICIOS DESTACADOS -->
-    <section class="services-highlight">
-      <div class="section-header observe-me">
-        <h2>Catálogo de <span>Servicios</span></h2>
-        <p>Soluciones diseñadas para el máximo desempeño de tu vehículo.</p>
+    <!-- 3. STATS BANNER -->
+    <section class="stats-banner observe-me">
+      <div class="stat-item">
+        <h3>+15</h3>
+        <p>Años de Experiencia</p>
       </div>
-
-      <div class="services-grid">
-        <div class="matte-card service-card observe-me" v-for="(s, i) in serviciosPreview" :key="i" :style="{ transitionDelay: `${i * 0.15}s` }">
-          <div class="service-img-wrap">
-            <div class="service-img" :style="{ backgroundImage: `url(${s.img})` }"></div>
-            <div class="service-overlay"></div>
-            <div class="service-price">${{ s.precio }}</div>
-          </div>
-          <div class="service-info">
-            <div class="service-header-info">
-              <span class="service-cat">{{ s.categoria }}</span>
-              <span class="service-time">{{ s.tiempo }}</span>
-            </div>
-            <h4>{{ s.name }}</h4>
-            <p>{{ s.desc }}</p>
-            <div class="service-footer">
-              <router-link to="/agendar" class="service-cta">Procesar Orden <span class="arr">→</span></router-link>
-            </div>
-          </div>
-        </div>
+      <div class="stat-item">
+        <h3>100%</h3>
+        <p>Garantía de Servicio</p>
       </div>
-      
-      <div class="center-action observe-me">
-        <router-link to="/servicios" class="btn btn-ghost">Acceder a Base de Datos</router-link>
+      <div class="stat-item">
+        <h3>24/7</h3>
+        <p>Atención a Clientes</p>
       </div>
     </section>
 
-    <!-- 4. FUTURISTIC CTA -->
+    <!-- 4. REVIEWS CAROUSEL -->
+    <section class="reviews observe-me">
+      <div class="section-header">
+        <h2>Lo que dicen <span>nuestros clientes</span></h2>
+        <p>Tu satisfacción es nuestro motor principal.</p>
+      </div>
+      
+      <div class="reviews-slider">
+        <button class="slider-btn" @click="prevReview">←</button>
+        <transition name="fade" mode="out-in">
+          <div :key="activeReview" class="review-content matte-card">
+            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <p class="review-text">"{{ reviews[activeReview].text }}"</p>
+            <p class="review-author">- {{ reviews[activeReview].author }}</p>
+          </div>
+        </transition>
+        <button class="slider-btn" @click="nextReview">→</button>
+      </div>
+      <div class="review-dots">
+        <span v-for="(r, i) in reviews" :key="i" class="dot" :class="{ active: i === activeReview }" @click="activeReview = i"></span>
+      </div>
+    </section>
+
+    <!-- 5. CTA -->
     <section class="parallax-cta">
       <div class="cta-bg" :style="{ transform: `translateY(${(scrollY - 2000) * 0.2}px) scale(1.1)` }"></div>
       <div class="cta-grid"></div>
       
       <div class="cta-content matte-card observe-me">
         <div class="cta-ring"></div>
-        <h2>Optimiza tu vehículo <span>ahora</span></h2>
-        <p>Agenda hoy y recibe telemetría básica y escaneo computarizado de cortesía en tu primera visita a nuestras instalaciones.</p>
-        <router-link to="/agendar" class="btn btn-primary">Comenzar Protocolo</router-link>
+        <h2>Optimiza tu vehículo <span>hoy</span></h2>
+        <p>Agenda hoy y recibe una revisión general de cortesía en tu primera visita a nuestro taller.</p>
+        <router-link v-if="user" to="/agendar" class="btn btn-primary">Agenda aquí</router-link>
+        <router-link v-else to="/login" class="btn btn-primary">Iniciar Sesión para Agendar</router-link>
       </div>
     </section>
 
@@ -114,7 +121,7 @@
           <h4>Navegación</h4>
           <router-link to="/">Inicio</router-link>
           <router-link to="/servicios">Servicios</router-link>
-          <router-link to="/agendar">Agendar Cita</router-link>
+          <router-link v-if="user" to="/agendar">Agendar Cita</router-link>
         </div>
         <div class="footer-contact">
           <h4>Terminal de Contacto</h4>
@@ -133,6 +140,11 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { storeToRefs } from 'pinia'
+
+const auth = useAuthStore()
+const { user } = storeToRefs(auth)
 
 const scrollY = ref(0)
 const rawMouseX = ref(0)
@@ -162,7 +174,6 @@ const scrollToFeatures = () => {
 onMounted(() => {
   window.addEventListener('scroll', onScroll, { passive: true })
   
-  // Intersection Observer for scroll animations
   observer.value = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -180,31 +191,21 @@ onUnmounted(() => {
 })
 
 const features = [
-  { icon: '01', title: 'Diagnóstico IA', desc: 'Escaneo profundo asistido por algoritmos para detectar anomalías antes de que ocurran.' },
-  { icon: '02', title: 'Piezas OEM', desc: 'Certificación de componentes originales para mantener la integridad de tu máquina.' },
-  { icon: '03', title: 'Telemetría', desc: 'Seguimiento en tiempo real del estado de reparación a través de nuestra plataforma.' },
+  { icon: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 9.36l-7.1 7.1a1 1 0 0 1-1.42 0l-1.41-1.41a1 1 0 0 1 0-1.42l7.1-7.1a6 6 0 0 1 9.36-7.94l-3.76 3.76z"/></svg>`, title: 'Mantenimiento Preventivo', desc: 'Cambios de aceite, filtros y revisión de fluidos para mantener tu auto en óptimas condiciones.' },
+  { icon: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>`, title: 'Mecánica General', desc: 'Reparación de frenos, suspensión, dirección y componentes mecánicos de todas las marcas.' },
+  { icon: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`, title: 'Sistema Eléctrico', desc: 'Diagnóstico y reparación de baterías, alternadores, luces y sistemas electrónicos complejos.' },
 ]
 
-const serviciosPreview = [
-  {
-    img: 'https://images.unsplash.com/photo-1625047509168-a71c6f21223e?w=800&q=80',
-    name: 'Calibración de Motor',
-    desc: 'Optimización de ECU, inyección y fluidos sintéticos para máximo rendimiento.',
-    precio: 120, tiempo: '60 min', categoria: 'RENDIMIENTO'
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80',
-    name: 'Dinámica Estructural',
-    desc: 'Alineación láser 3D y calibración de suspensión adaptativa.',
-    precio: 85, tiempo: '1.5 hrs', categoria: 'CHASIS'
-  },
-  {
-    img: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&q=80',
-    name: 'Sistemas de Frenado Cerámico',
-    desc: 'Mantenimiento preventivo y reemplazo de pastillas de alta fricción.',
-    precio: 250, tiempo: '2 hrs', categoria: 'SEGURIDAD'
-  }
+const reviews = [
+  { text: "Excelente servicio. Fueron rápidos, transparentes con los precios y dejaron mi auto como nuevo. ¡Totalmente recomendados!", author: "Carlos M." },
+  { text: "El mejor taller al que he ido. Resolvieron un problema eléctrico que en otros lugares no pudieron. Muy profesionales.", author: "Andrea Gómez" },
+  { text: "Atención de primera. Te explican todo detalladamente y el lugar es impecable. Los mecánicos saben lo que hacen.", author: "Luis Ramírez" },
+  { text: "Llevé mi coche por un ruido en los frenos y me lo solucionaron el mismo día a un precio justo.", author: "Roberto F." }
 ]
+const activeReview = ref(0)
+const nextReview = () => { activeReview.value = (activeReview.value + 1) % reviews.length }
+const prevReview = () => { activeReview.value = (activeReview.value - 1 + reviews.length) % reviews.length }
+
 </script>
 
 <style scoped>
@@ -231,6 +232,9 @@ const serviciosPreview = [
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .observe-me.is-visible { opacity: 1; transform: translateY(0); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 /* HERO PARALLAX */
 .hero-parallax {
@@ -300,6 +304,7 @@ const serviciosPreview = [
 
 /* SECTION HEADER */
 .section-header h2 span { color: var(--primary); font-style: italic; padding-right: 0.2rem; }
+.section-header p { color: var(--text-secondary); margin-top: 10px; }
 
 /* FEATURES */
 .features { padding: 8rem 2rem 4rem; max-width: 1300px; margin: 0 auto; position: relative; z-index: 10; }
@@ -310,8 +315,7 @@ const serviciosPreview = [
 .feature-card { padding: 3rem 2.5rem; text-align: left; }
 .feature-icon-wrap { position: relative; margin-bottom: 2rem; display: inline-block; }
 .feature-icon {
-  font-family: 'Space Grotesk', sans-serif; font-size: 4rem; font-weight: 300;
-  color: white; line-height: 1; position: relative; z-index: 2;
+  font-size: 3rem; line-height: 1; position: relative; z-index: 2;
 }
 .icon-glow {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -327,46 +331,39 @@ const serviciosPreview = [
 }
 .feature-card:hover .card-deco-line { width: 40px; }
 
-/* SERVICES HIGHLIGHT */
-.services-highlight { padding: 6rem 2rem; max-width: 1300px; margin: 0 auto; position: relative; z-index: 10; }
-.services-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2.5rem; margin-top: 5rem; margin-bottom: 4rem;
+/* STATS BANNER */
+.stats-banner {
+  background: var(--bg-card);
+  border-top: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 4rem 2rem;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 2rem;
+  position: relative;
+  z-index: 10;
 }
-.service-card { display: flex; flex-direction: column; padding: 0; }
-.service-img-wrap { position: relative; height: 250px; overflow: hidden; }
-.service-img {
-  width: 100%; height: 100%; background-size: cover; background-position: center;
-  filter: grayscale(80%) contrast(1.2); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+.stat-item { text-align: center; }
+.stat-item h3 { font-family: 'Space Grotesk', sans-serif; font-size: 3.5rem; font-weight: 900; color: var(--primary); margin-bottom: 0.5rem; }
+.stat-item p { color: white; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+/* REVIEWS */
+.reviews { padding: 8rem 2rem; max-width: 900px; margin: 0 auto; position: relative; z-index: 10; text-align: center; }
+.reviews-slider { display: flex; align-items: center; justify-content: center; gap: 2rem; margin-top: 4rem; }
+.slider-btn {
+  background: transparent; border: 1px solid rgba(255,255,255,0.2);
+  width: 50px; height: 50px; border-radius: 50%; color: white;
+  font-size: 1.5rem; cursor: pointer; transition: all 0.3s;
 }
-.service-card:hover .service-img { transform: scale(1.1); filter: grayscale(0%) contrast(1.1); }
-.service-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(to top, var(--bg-card) 0%, transparent 100%);
-}
-.service-price {
-  position: absolute; bottom: 20px; right: 20px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700;
-  color: white; text-shadow: 0 5px 15px rgba(0,0,0,0.8);
-}
-.service-info { padding: 2rem; display: flex; flex-direction: column; flex: 1; }
-.service-header-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.service-cat {
-  font-size: 0.65rem; font-weight: 700; letter-spacing: 3px; color: var(--primary); padding: 0.3rem 0.8rem;
-  border: 1px solid rgba(230,0,35,0.3); border-radius: 100px;
-}
-.service-time { font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: var(--text-muted); }
-.service-info h4 { font-size: 1.5rem; color: white; margin-bottom: 1rem; }
-.service-info p { color: var(--text-secondary); font-size: 0.95rem; flex: 1; margin-bottom: 2rem; line-height: 1.6; }
-.service-footer { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; }
-.service-cta {
-  font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 700;
-  color: white; text-transform: uppercase; letter-spacing: 2px;
-  display: flex; align-items: center; justify-content: space-between; transition: color 0.3s;
-}
-.service-cta .arr { color: var(--primary); transition: transform 0.3s; }
-.service-cta:hover { color: var(--primary); }
-.service-cta:hover .arr { transform: translateX(5px); }
+.slider-btn:hover { background: var(--primary); border-color: var(--primary); }
+.review-content { padding: 3rem; flex: 1; border-radius: 12px; }
+.stars { font-size: 1.5rem; margin-bottom: 1.5rem; }
+.review-text { font-size: 1.2rem; font-style: italic; color: white; line-height: 1.6; margin-bottom: 1.5rem; }
+.review-author { font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+.review-dots { display: flex; justify-content: center; gap: 10px; margin-top: 2rem; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+.dot.active { background: var(--primary); transform: scale(1.3); }
 
 /* PARALLAX CTA */
 .parallax-cta {
@@ -426,5 +423,7 @@ const serviciosPreview = [
   .hero-title { font-size: 3rem; }
   .footer-grid { grid-template-columns: 1fr; gap: 3rem; }
   .hero-actions { flex-direction: column; }
+  .reviews-slider { flex-direction: column; }
+  .slider-btn { display: none; }
 }
 </style>

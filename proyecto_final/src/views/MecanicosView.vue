@@ -1,226 +1,250 @@
 <template>
-  <div class="mecanicos-page">
+  <main class="admin-root mecanicos-page">
 
-    <!-- HEADER -->
-    <div class="page-header">
-      <div class="header-content">
-        <h1>🔧 Panel de Mecánicos</h1>
-        <p>Rendimiento, ingresos y gestión del equipo</p>
-      </div>
-      <button v-if="isAdmin" class="btn-primary" @click="abrirModalCrear">
-        + Nuevo Mecánico
-      </button>
-    </div>
+    <!-- Background effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb bg-orb-1"></div>
 
-    <!-- STATS GENERALES -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">👨‍🔧</div>
-        <div class="stat-info">
-          <span class="stat-value">{{ mecanicos.length }}</span>
-          <span class="stat-label">Total Mecánicos</span>
+    <div class="content-area observe-me is-visible" style="max-width: 1200px; margin: 0 auto; z-index: 1; position: relative;">
+      
+      <!-- HEADER -->
+      <header class="topbar" style="margin-bottom: 2rem;">
+        <div>
+          <h1 class="page-title">EQUIPO <span>TÉCNICO</span></h1>
+          <p class="text-muted" style="font-family: 'Space Grotesk', sans-serif; letter-spacing: 1px;">Rendimiento, ingresos y gestión del equipo</p>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-info">
-          <span class="stat-value">{{ mecanicosDisponibles }}</span>
-          <span class="stat-label">Disponibles</span>
+        <button v-if="isAdmin" class="btn btn-primary" @click="abrirModalCrear">
+          NUEVO MECÁNICO
+        </button>
+      </header>
+
+      <!-- STATS GENERALES -->
+      <div class="kpi-grid">
+        <div class="kpi-card matte-card">
+          <p class="kpi-label">TOTAL MECÁNICOS</p>
+          <h3 class="kpi-value">{{ mecanicos.length }}</h3>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📋</div>
-        <div class="stat-info">
-          <span class="stat-value">{{ totalCitas }}</span>
-          <span class="stat-label">Citas Totales</span>
+        <div class="kpi-card matte-card">
+          <p class="kpi-label">DISPONIBLES</p>
+          <h3 class="kpi-value text-primary">{{ mecanicosDisponibles }}</h3>
         </div>
-      </div>
-      <div class="stat-card highlight">
-        <div class="stat-icon">💰</div>
-        <div class="stat-info">
-          <span class="stat-value">{{ formatPeso(totalIngresos) }}</span>
-          <span class="stat-label">Ingresos Totales</span>
+        <div class="kpi-card matte-card">
+          <p class="kpi-label">CITAS ATENDIDAS</p>
+          <h3 class="kpi-value">{{ totalCitas }}</h3>
         </div>
-      </div>
-    </div>
-
-    <!-- LOADING -->
-    <div v-if="loading" class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando mecánicos...</p>
-    </div>
-
-    <!-- ERROR -->
-    <div v-else-if="error" class="error-state">
-      <p>⚠️ {{ error }}</p>
-      <button @click="cargarMecanicos" class="btn-secondary">Reintentar</button>
-    </div>
-
-    <template v-else>
-
-      <!-- RANKING TOP 3 -->
-      <div class="section-title">🏆 Ranking por Ingresos</div>
-      <div class="ranking-grid">
-        <div
-          v-for="(m, i) in rankingTop3"
-          :key="m.id"
-          class="ranking-card"
-          :class="['pos-' + (i+1)]"
-        >
-          <div class="ranking-pos">{{ ['🥇','🥈','🥉'][i] }}</div>
-          <div class="ranking-nombre">{{ m.nombre }}</div>
-          <div class="ranking-especialidad">{{ m.especialidad || 'Sin especialidad' }}</div>
-          <div class="ranking-monto">{{ formatPeso(m.total_generado) }}</div>
-          <div class="ranking-citas">{{ m.citas_completadas || 0 }} citas completadas</div>
+        <div class="kpi-card matte-card" style="border-top-color: #10b981;">
+          <p class="kpi-label">INGRESOS TOTALES</p>
+          <h3 class="kpi-value text-green">{{ formatPeso(totalIngresos) }}</h3>
         </div>
       </div>
 
-      <!-- TABLA -->
-      <div class="section-title">👨‍🔧 Todos los Mecánicos</div>
-      <div class="table-container">
-        <table class="mecanicos-table">
-          <thead>
-            <tr>
-              <th>Mecánico</th>
-              <th>Especialidad</th>
-              <th>Estado</th>
-              <th>Citas</th>
-              <th>Completadas</th>
-              <th>Ingresos</th>
-              <th v-if="isAdmin">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="m in mecanicos"
-              :key="m.id"
-              @click="verDetalle(m)"
-              class="table-row"
-            >
-              <td>
-                <div class="mecanico-nombre">
-                  <div class="avatar">{{ m.nombre.charAt(0) }}</div>
-                  <div>
-                    <strong>{{ m.nombre }}</strong>
-                    <small v-if="m.telefono">{{ m.telefono }}</small>
+      <!-- LOADING -->
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>SINCRONIZANDO BASE DE DATOS...</p>
+      </div>
+
+      <!-- ERROR -->
+      <div v-else-if="error" class="error-state matte-card" style="margin-top: 2rem;">
+        <p class="text-red">{{ error }}</p>
+        <button @click="cargarMecanicos" class="btn btn-ghost mt-3">Reintentar Conexión</button>
+      </div>
+
+      <template v-else>
+
+        <!-- RANKING TOP 3 -->
+        <h3 class="section-title">TOP RENDIMIENTO FINANCIERO</h3>
+        <div class="ranking-grid">
+          <div
+            v-for="(m, i) in rankingTop3"
+            :key="m.id"
+            class="ranking-card matte-card"
+          >
+            <div class="ranking-pos">0{{ i + 1 }}</div>
+            <div class="ranking-info">
+              <div class="ranking-nombre">{{ m.nombre }}</div>
+              <div class="ranking-especialidad">{{ m.especialidad || 'General' }}</div>
+            </div>
+            <div class="ranking-stats">
+              <div class="ranking-monto">{{ formatPeso(m.total_generado) }}</div>
+              <div class="ranking-citas">{{ m.citas_completadas || 0 }} COMPLETADAS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLA -->
+        <h3 class="section-title">LISTADO OPERATIVO</h3>
+        <div class="table-container matte-card">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>OPERADOR</th>
+                <th>TELÉFONO</th>
+                <th>ESPECIALIDAD</th>
+                <th>ESTADO</th>
+                <th>ATENCIONES</th>
+                <th>COMPLETADAS</th>
+                <th>INGRESOS GENERADOS</th>
+                <th v-if="isAdmin">ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="m in mecanicos"
+                :key="m.id"
+                @click="verDetalle(m)"
+                class="clickable-row"
+              >
+                <td>
+                  <div class="mecanico-nombre">
+                    <div class="avatar">{{ m.nombre.charAt(0).toUpperCase() }}</div>
+                    <div>
+                      <strong>{{ m.nombre }}</strong>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td>{{ m.especialidad || '—' }}</td>
-              <td>
-                <span class="badge" :class="m.disponible ? 'badge-green' : 'badge-red'">
-                  {{ m.disponible ? 'Disponible' : 'No disponible' }}
-                </span>
-              </td>
-              <td>{{ m.total_citas || 0 }}</td>
-              <td>{{ m.citas_completadas || 0 }}</td>
-              <td class="monto">{{ formatPeso(m.total_generado) }}</td>
-              <td v-if="isAdmin" @click.stop>
-                <button class="btn-icon" @click="abrirModalEditar(m)">✏️</button>
-                <button class="btn-icon btn-danger" @click="confirmarEliminar(m)">🗑️</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                </td>
+                <td style="color: var(--text-secondary)">{{ m.telefono || '—' }}</td>
+                <td style="color: var(--text-secondary)">{{ m.especialidad || '—' }}</td>
+                <td>
+                  <span :class="['status-badge', m.disponible ? 'completada' : 'cancelada']">
+                    {{ m.disponible ? 'ACTIVO' : 'INACTIVO' }}
+                  </span>
+                </td>
+                <td>{{ m.total_citas || 0 }}</td>
+                <td>{{ m.citas_completadas || 0 }}</td>
+                <td class="text-green fw-bold">{{ formatPeso(m.total_generado) }}</td>
+                <td v-if="isAdmin" @click.stop>
+                  <div class="actions">
+                    <button class="btn-action act-ok" title="Editar" @click="abrirModalEditar(m)">✎</button>
+                    <button class="btn-action act-cancel" title="Eliminar" @click="confirmarEliminar(m)">✕</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-    </template>
+      </template>
+    </div>
 
     <!-- MODAL DETALLE -->
-    <div v-if="mecanicoDetalle" class="modal-overlay" @click.self="mecanicoDetalle = null">
-      <div class="modal">
-        <button class="modal-close" @click="mecanicoDetalle = null">✕</button>
-        <div v-if="loadingDetalle" class="loading-state"><div class="spinner"></div></div>
-        <template v-else-if="detalle">
-          <h2>{{ detalle.mecanico.nombre }}</h2>
-          <p class="detalle-especialidad">{{ detalle.mecanico.especialidad || 'Sin especialidad' }}</p>
-          <div class="detalle-stats">
-            <div class="detalle-stat">
-              <span class="ds-value">{{ detalle.resumen.total_citas }}</span>
-              <span class="ds-label">Total citas</span>
-            </div>
-            <div class="detalle-stat green">
-              <span class="ds-value">{{ detalle.resumen.completadas }}</span>
-              <span class="ds-label">Completadas</span>
-            </div>
-            <div class="detalle-stat yellow">
-              <span class="ds-value">{{ detalle.resumen.pendientes }}</span>
-              <span class="ds-label">Pendientes</span>
-            </div>
-            <div class="detalle-stat blue">
-              <span class="ds-value">{{ formatPeso(detalle.resumen.total_generado) }}</span>
-              <span class="ds-label">Total generado</span>
-            </div>
-          </div>
-          <div class="detalle-citas">
-            <h3>Historial de citas</h3>
-            <div v-if="detalle.citas.length === 0" class="empty">Sin citas registradas</div>
-            <div v-for="c in detalle.citas" :key="c.id" class="cita-item">
-              <div class="cita-info">
-                <strong>{{ c.cliente }}</strong>
-                <small>{{ c.vehiculo }} · {{ c.servicio }}</small>
-                <small>{{ c.fecha }} {{ c.hora }}</small>
+    <transition name="fade">
+      <div v-if="mecanicoDetalle" class="success-overlay" @click.self="mecanicoDetalle = null">
+        <div class="success-modal matte-card" style="max-width: 600px; text-align: left;">
+          <h2 class="sm-title">EXPEDIENTE <span>MECÁNICO</span></h2>
+          <p class="sm-sub">{{ detalle?.mecanico?.nombre || 'Cargando...' }} - {{ detalle?.mecanico?.especialidad || 'General' }}</p>
+          
+          <div v-if="loadingDetalle" class="loading-state"><div class="spinner"></div></div>
+          
+          <template v-else-if="detalle">
+            <div class="kpi-grid mb-4" style="grid-template-columns: repeat(2, 1fr);">
+              <div class="kpi-card matte-card p-3">
+                <p class="kpi-label">TOTAL SERVICIOS</p>
+                <h3 class="kpi-value" style="font-size: 1.5rem;">{{ detalle.resumen.total_citas }}</h3>
               </div>
-              <div class="cita-right">
-                <span class="badge" :class="badgeEstado(c.estado)">{{ c.estado }}</span>
-                <span class="cita-monto">{{ formatPeso(c.monto) }}</span>
+              <div class="kpi-card matte-card p-3">
+                <p class="kpi-label">COMPLETADAS</p>
+                <h3 class="kpi-value text-green" style="font-size: 1.5rem;">{{ detalle.resumen.completadas }}</h3>
+              </div>
+              <div class="kpi-card matte-card p-3">
+                <p class="kpi-label">PENDIENTES</p>
+                <h3 class="kpi-value text-yellow" style="font-size: 1.5rem;">{{ detalle.resumen.pendientes }}</h3>
+              </div>
+              <div class="kpi-card matte-card p-3">
+                <p class="kpi-label">INGRESOS</p>
+                <h3 class="kpi-value text-green" style="font-size: 1.5rem;">{{ formatPeso(detalle.resumen.total_generado) }}</h3>
               </div>
             </div>
-          </div>
-        </template>
+
+            <h4 class="form-group label mb-3" style="color: var(--text-secondary); letter-spacing: 2px;">REGISTRO DE INTERVENCIONES</h4>
+            <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+              <table class="data-table" style="font-size: 0.8rem;">
+                <thead>
+                  <tr>
+                    <th>FECHA</th>
+                    <th>CLIENTE</th>
+                    <th>ESTADO</th>
+                    <th>MONTO</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="detalle.citas.length === 0"><td colspan="4" class="text-center">Sin intervenciones</td></tr>
+                  <tr v-for="c in detalle.citas" :key="c.id">
+                    <td>{{ c.fecha }} {{ c.hora }}</td>
+                    <td>{{ c.cliente }}</td>
+                    <td><span :class="['status-badge', c.estado]">{{ c.estado }}</span></td>
+                    <td class="text-green">{{ formatPeso(c.monto) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="sm-actions mt-4 text-right">
+              <button class="btn btn-primary" @click="mecanicoDetalle = null">Cerrar Expediente</button>
+            </div>
+          </template>
+        </div>
       </div>
-    </div>
+    </transition>
 
     <!-- MODAL CREAR/EDITAR -->
-    <div v-if="modalForm" class="modal-overlay" @click.self="modalForm = false">
-      <div class="modal modal-form">
-        <button class="modal-close" @click="modalForm = false">✕</button>
-        <h2>{{ editando ? 'Editar Mecánico' : 'Nuevo Mecánico' }}</h2>
-        <div class="form-group">
-          <label>Nombre *</label>
-          <input v-model="form.nombre" placeholder="Nombre completo" />
+    <transition name="fade">
+      <div v-if="modalForm" class="success-overlay" @click.self="modalForm = false">
+        <div class="success-modal matte-card" style="max-width: 500px; text-align: left;">
+          <h2 class="sm-title">{{ editando ? 'ACTUALIZAR' : 'NUEVO' }} <span>OPERADOR</span></h2>
+          <p class="sm-sub">Ingresa los datos del perfil técnico.</p>
+
+          <div class="form-group">
+            <label>NOMBRE COMPLETO</label>
+            <input v-model="form.nombre" type="text" placeholder="Ej: Roberto Gómez" />
+          </div>
+          <div class="form-group mt-3">
+            <label>ESPECIALIDAD</label>
+            <input v-model="form.especialidad" type="text" placeholder="Ej: Electrónica Automotriz" />
+          </div>
+          <div class="form-group mt-3">
+            <label>TELÉFONO DE CONTACTO</label>
+            <input v-model="form.telefono" type="tel" placeholder="Ej: 3001234567" />
+          </div>
+          <div class="form-group mt-3">
+            <label>ESTADO OPERATIVO</label>
+            <select v-model="form.disponible" class="filter-select w-100">
+              <option :value="true">Activo / Disponible</option>
+              <option :value="false">Inactivo / Fuera de Servicio</option>
+            </select>
+          </div>
+          
+          <p v-if="formError" class="text-red mt-3 text-center" style="font-size: 0.85rem;">{{ formError }}</p>
+
+          <div class="sm-actions mt-4" style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="btn btn-ghost" @click="modalForm = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarMecanico" :disabled="guardando">
+              {{ guardando ? 'Guardando...' : (editando ? 'Actualizar' : 'Crear Registro') }}
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Especialidad</label>
-          <input v-model="form.especialidad" placeholder="Ej: Motor y transmisión" />
-        </div>
-        <div class="form-group">
-          <label>Teléfono</label>
-          <input v-model="form.telefono" placeholder="Ej: 3001234567" />
-        </div>
-        <div class="form-group">
-          <label>Estado</label>
-          <select v-model="form.disponible">
-            <option :value="true">Disponible</option>
-            <option :value="false">No disponible</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button class="btn-secondary" @click="modalForm = false">Cancelar</button>
-          <button class="btn-primary" @click="guardarMecanico" :disabled="guardando">
-            {{ guardando ? 'Guardando...' : (editando ? 'Actualizar' : 'Crear') }}
-          </button>
-        </div>
-        <p v-if="formError" class="form-error">{{ formError }}</p>
       </div>
-    </div>
+    </transition>
 
     <!-- MODAL CONFIRMAR ELIMINAR -->
-    <div v-if="mecanicoAEliminar" class="modal-overlay" @click.self="mecanicoAEliminar = null">
-      <div class="modal modal-confirm">
-        <h2>⚠️ Eliminar mecánico</h2>
-        <p>¿Estás seguro de eliminar a <strong>{{ mecanicoAEliminar.nombre }}</strong>?</p>
-        <p class="confirm-warning">Sus citas quedarán sin mecánico asignado.</p>
-        <div class="form-actions">
-          <button class="btn-secondary" @click="mecanicoAEliminar = null">Cancelar</button>
-          <button class="btn-danger-full" @click="eliminarMecanico" :disabled="eliminando">
-            {{ eliminando ? 'Eliminando...' : 'Sí, eliminar' }}
-          </button>
+    <transition name="fade">
+      <div v-if="mecanicoAEliminar" class="success-overlay" @click.self="mecanicoAEliminar = null">
+        <div class="success-modal matte-card" style="max-width: 450px; text-align: center;">
+          <h2 class="sm-title" style="color: #ef4444;">ALERTA DE SISTEMA</h2>
+          <p class="sm-sub mt-2">¿Confirmas la eliminación del expediente de <strong>{{ mecanicoAEliminar.nombre }}</strong>?</p>
+          <p class="text-muted" style="font-size: 0.85rem; margin-top: 1rem;">Las órdenes de servicio vinculadas quedarán sin asignar.</p>
+          
+          <div class="sm-actions mt-4" style="display: flex; justify-content: center; gap: 1rem;">
+            <button class="btn btn-ghost" @click="mecanicoAEliminar = null">Cancelar</button>
+            <button class="btn btn-primary" style="background: #ef4444;" @click="eliminarMecanico" :disabled="eliminando">
+              {{ eliminando ? 'Procesando...' : 'Confirmar Eliminación' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
 
-  </div>
+  </main>
 </template>
 
 <script setup>
@@ -345,79 +369,79 @@ onMounted(cargarMecanicos)
 </script>
 
 <style scoped>
-.mecanicos-page { max-width: 1200px; margin: 0 auto; padding: 6rem 1.5rem 2rem; font-family: inherit; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-.page-header h1 { font-size: 1.8rem; font-weight: 700; margin: 0; color: white; }
-.page-header p  { color: #6b7280; margin: 0.25rem 0 0; }
-.btn-primary    { background: #f59e0b; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-primary:hover { background: #d97706; }
-.btn-secondary  { background: #374151; color: #e5e7eb; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-danger-full { background: #ef4444; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.btn-icon       { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 0.3rem; border-radius: 4px; }
-.btn-icon:hover { background: rgba(255,255,255,0.1); }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.stat-card  { background: #1f2937; border-radius: 12px; padding: 1.2rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
-.stat-card.highlight { background: #1f2937; border: 1px solid #f59e0b; }
-.stat-icon  { font-size: 2rem; }
-.stat-value { font-size: 1.4rem; font-weight: 700; display: block; color: white; }
-.stat-label { font-size: 0.8rem; color: #6b7280; }
-.section-title { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 1rem; color: white; }
-.ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.ranking-card { background: #1f2937; border-radius: 12px; padding: 1.5rem; text-align: center; border-top: 4px solid #374151; }
-.ranking-card.pos-1 { border-color: #f59e0b; background: #1f2937; }
-.ranking-card.pos-2 { border-color: #9ca3af; }
-.ranking-card.pos-3 { border-color: #d97706; }
-.ranking-pos  { font-size: 2.5rem; }
-.ranking-nombre { font-weight: 700; font-size: 1rem; margin: 0.5rem 0 0.2rem; color: white; }
-.ranking-especialidad { font-size: 0.8rem; color: #6b7280; margin-bottom: 0.8rem; }
-.ranking-monto { font-size: 1.2rem; font-weight: 700; color: #059669; }
-.ranking-citas { font-size: 0.75rem; color: #6b7280; margin-top: 0.3rem; }
-.table-container { background: #1f2937; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
-.mecanicos-table { width: 100%; border-collapse: collapse; }
-.mecanicos-table th { background: #111827; padding: 0.9rem 1rem; text-align: left; font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
-.mecanicos-table td { padding: 0.9rem 1rem; border-top: 1px solid #374151; font-size: 0.9rem; color: #e5e7eb; }
-.table-row { cursor: pointer; transition: background .15s; }
-.table-row:hover { background: #374151; }
+.admin-root { min-height: 100vh; background: var(--bg-base); padding-top: calc(var(--nav-height) + 2rem); position: relative; overflow: hidden; padding-bottom: 3rem; }
+.bg-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-image: linear-gradient(rgba(230,0,35,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(230,0,35,0.03) 1px, transparent 1px); background-size: 50px 50px; }
+.bg-orb { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 0; width: 500px; height: 500px; background: radial-gradient(circle, rgba(230,0,35,0.05) 0%, transparent 70%); top: -100px; left: -100px; }
+
+.page-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 900; color: white; margin: 0; }
+.page-title span { color: var(--primary); }
+.topbar { display: flex; justify-content: space-between; align-items: flex-end; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.kpi-card { padding: 1.5rem; border-top: 2px solid transparent; transition: all 0.3s; }
+.kpi-card:hover { transform: translateY(-3px); border-top-color: var(--primary); }
+.kpi-label { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 2.2rem; font-weight: 900; color: white; line-height: 1; margin: 0; }
+.text-primary { color: var(--primary) !important; text-shadow: 0 0 10px rgba(230,0,35,0.5); }
+.text-green { color: #10b981 !important; text-shadow: 0 0 10px rgba(16,185,129,0.3); }
+.text-yellow { color: #f59e0b !important; text-shadow: 0 0 10px rgba(245,158,11,0.3); }
+.fw-bold { font-weight: 700; }
+
+.section-title { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; color: white; margin-bottom: 1.5rem; letter-spacing: 1px; text-transform: uppercase; }
+
+.ranking-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
+.ranking-card { display: flex; align-items: center; padding: 1.5rem; border-left: 3px solid var(--primary); gap: 1.5rem; }
+.ranking-pos { font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 900; color: rgba(255,255,255,0.1); line-height: 1; }
+.ranking-info { flex: 1; }
+.ranking-nombre { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 0.2rem; }
+.ranking-especialidad { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.ranking-stats { text-align: right; }
+.ranking-monto { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; color: #10b981; font-weight: 700; }
+.ranking-citas { font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 1px; margin-top: 0.2rem; }
+
+.table-container { overflow-x: auto; padding: 1rem; }
+.data-table { width: 100%; border-collapse: collapse; text-align: left; }
+.data-table th { font-family: 'Space Grotesk', sans-serif; font-size: 0.7rem; color: var(--text-muted); letter-spacing: 2px; padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.data-table td { padding: 1.2rem 1rem; font-size: 0.9rem; color: white; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+.clickable-row { cursor: pointer; transition: background 0.2s; }
+.clickable-row:hover { background: rgba(255,255,255,0.02); }
+
 .mecanico-nombre { display: flex; align-items: center; gap: 0.8rem; }
-.mecanico-nombre strong { display: block; color: white; }
-.mecanico-nombre small  { color: #6b7280; font-size: 0.78rem; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; background: #f59e0b; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
-.monto  { font-weight: 600; color: #059669; }
-.badge        { padding: 0.25rem 0.65rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.badge-green  { background: #064e3b; color: #6ee7b7; }
-.badge-red    { background: #7f1d1d; color: #fca5a5; }
-.badge-yellow { background: #78350f; color: #fcd34d; }
-.badge-blue   { background: #1e3a5f; color: #93c5fd; }
-.badge-gray   { background: #374151; color: #9ca3af; }
-.loading-state { text-align: center; padding: 3rem; color: #6b7280; }
-.error-state   { text-align: center; padding: 2rem; color: #ef4444; }
-.spinner { width: 36px; height: 36px; border: 3px solid #374151; border-top-color: #f59e0b; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 1rem; }
+.avatar { width: 36px; height: 36px; border-radius: 4px; background: rgba(230,0,35,0.1); color: var(--primary); border: 1px solid rgba(230,0,35,0.3); display: flex; align-items: center; justify-content: center; font-weight: 900; font-family: 'Space Grotesk', sans-serif; }
+
+.status-badge { font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.completada { background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.cancelada { background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+.pendiente { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+
+.actions { display: flex; gap: 0.5rem; }
+.btn-action { width: 30px; height: 30px; border-radius: 6px; border: 1px solid transparent; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; background: transparent; display: flex; align-items: center; justify-content: center; }
+.act-ok { color: #60a5fa; border-color: rgba(59,130,246,0.3); }
+.act-ok:hover { background: rgba(59,130,246,0.1); }
+.act-cancel { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.act-cancel:hover { background: rgba(239,68,68,0.1); }
+
+.success-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+.success-modal { padding: 4rem 3rem; width: 90%; }
+.sm-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 900; color: white; margin-bottom: 0.5rem; margin-top: 0; }
+.sm-title span { color: var(--primary); }
+.sm-sub { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.9rem; }
+
+.form-group label { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 700; color: var(--primary); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.form-group input, .filter-select { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 1rem; color: white; font-family: 'Outfit', sans-serif; border-radius: 4px; outline: none; transition: border-color 0.3s; }
+.form-group input:focus, .filter-select:focus { border-color: var(--primary); }
+.filter-select option { background: var(--bg-deep); color: white; }
+.w-100 { width: 100%; }
+
+.loading-state { text-align: center; padding: 5rem; color: var(--primary); font-family: 'Space Grotesk', sans-serif; letter-spacing: 2px; font-weight: 700; }
+.spinner { width: 40px; height: 40px; border: 3px solid rgba(230,0,35,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; }
-.modal { background: #1f2937; border-radius: 16px; padding: 2rem; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; color: #e5e7eb; }
-.modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #6b7280; }
-.modal h2 { margin: 0 0 0.3rem; font-size: 1.3rem; color: white; }
-.detalle-especialidad { color: #6b7280; margin-bottom: 1.5rem; }
-.detalle-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.detalle-stat { background: #111827; border-radius: 10px; padding: 1rem; text-align: center; }
-.detalle-stat.green  { background: #064e3b; }
-.detalle-stat.yellow { background: #78350f; }
-.detalle-stat.blue   { background: #1e3a5f; }
-.ds-value { display: block; font-size: 1.3rem; font-weight: 700; color: white; }
-.ds-label { font-size: 0.78rem; color: #9ca3af; }
-.detalle-citas h3 { font-size: 1rem; margin-bottom: 0.8rem; color: white; }
-.cita-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; border-radius: 8px; background: #111827; margin-bottom: 0.5rem; gap: 1rem; }
-.cita-info strong { display: block; font-size: 0.9rem; color: white; }
-.cita-info small  { display: block; color: #6b7280; font-size: 0.78rem; }
-.cita-right { text-align: right; flex-shrink: 0; }
-.cita-monto { display: block; font-weight: 600; color: #059669; font-size: 0.85rem; margin-top: 0.3rem; }
-.empty { color: #6b7280; text-align: center; padding: 1rem; }
-.modal-form .form-group { margin-bottom: 1rem; }
-.modal-form label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #e5e7eb; }
-.modal-form input, .modal-form select { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #374151; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box; background: #111827; color: #e5e7eb; }
-.form-actions { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem; }
-.form-error { color: #ef4444; font-size: 0.85rem; margin-top: 0.8rem; text-align: center; }
-.modal-confirm { max-width: 400px; text-align: center; }
-.modal-confirm h2 { margin-bottom: 1rem; }
-.confirm-warning { color: #ef4444; font-size: 0.85rem; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+@media (max-width: 900px) {
+  .ranking-grid { grid-template-columns: 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+}
 </style>

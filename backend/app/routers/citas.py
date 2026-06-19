@@ -207,7 +207,7 @@ def get_mis_citas(authorization: str = Header(None)):
             LEFT JOIN usuario  u ON c.id_usuario  = u.id_usuario
             LEFT JOIN vehiculo v ON c.id_vehiculo = v.id_vehiculo
             LEFT JOIN servicio s ON c.id_servicio = s.id_servicio
-            WHERE c.id_usuario = %s
+            WHERE c.id_usuario = %s AND c.estado != 'cancelada'
             ORDER BY c.fecha DESC, c.hora DESC
         """, (uid,))
         rows = cur.fetchall()
@@ -227,8 +227,8 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
 
         # [CIT-4] Mecánico
         mid = body.id_mecanico
+        cur = conn.cursor()
         if not mid:
-            cur = conn.cursor()
             cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
             mec = cur.fetchone()
             mid = mec["id_mecanico"] if mec else None

@@ -117,15 +117,17 @@ const currentFilter = ref('todos')
 const observer = ref(null)
 
 onMounted(() => {
-  observer.value = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible')
-      }
-    })
-  }, { threshold: 0.1 })
-
-  document.querySelectorAll('.observe-me').forEach(el => observer.value.observe(el))
+  fetchServices().then(() => {
+    observer.value = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+        }
+      })
+    }, { threshold: 0.1 })
+  
+    document.querySelectorAll('.observe-me').forEach(el => observer.value.observe(el))
+  })
 })
 
 onUnmounted(() => {
@@ -141,83 +143,40 @@ const filters = [
   { label: 'Estética',       value: 'Estética' }
 ]
 
-const services = [
-  {
-    id: 1,
-    img: 'https://images.unsplash.com/photo-1615906655593-ad0386982a0f?w=800&q=80',
-    name: 'Mantenimiento Preventivo PRO',
-    categoria: 'Mantenimiento',
-    precio: '180.000', tiempo: '45 min',
-    desc: 'Cambio de aceite sintético de alto rendimiento, filtro de aceite, filtro de aire y revisión de niveles de fluidos.',
-    features: ['Aceite Full Sintético', 'Filtros Originales OEM', 'Chequeo de 20 puntos']
-  },
-  {
-    id: 2,
-    img: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&q=80',
-    name: 'Diagnóstico Computarizado Avanzado',
-    categoria: 'Diagnóstico',
-    precio: '90.000', tiempo: '1 hora',
-    desc: 'Lectura completa de códigos de falla (DTC), revisión de sensores en tiempo real y borrado de testigos.',
-    features: ['Escáner OBD2 Nivel 3', 'Lectura de sensores en vivo', 'Informe digital']
-  },
-  {
-    id: 3,
-    img: 'https://images.unsplash.com/photo-1625047509168-a71c6f21223e?w=800&q=80',
-    name: 'Actualización a Frenos Cerámicos',
-    categoria: 'Frenos',
-    precio: '350.000', tiempo: '2.5 horas',
-    desc: 'Instalación de pastillas cerámicas de baja emisión de polvo, rectificado de discos y purga de líquido DOT 4.',
-    features: ['Pastillas Cerámicas Premium', 'Rectificado de Discos', 'Líquido de Frenos DOT 4']
-  },
-  {
-    id: 4,
-    img: 'https://images.unsplash.com/photo-1530046339160-ce3e530c7d2f?w=800&q=80',
-    name: 'Sincronización Electrónica',
-    categoria: 'Mantenimiento',
-    precio: '250.000', tiempo: '3 horas',
-    desc: 'Limpieza de inyectores por ultrasonido, cambio de bujías de Iridio y limpieza del cuerpo de aceleración.',
-    features: ['Bujías de Iridio', 'Limpieza por Ultrasonido', 'Cuerpo de Aceleración']
-  },
-  {
-    id: 5,
-    img: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=800&q=80',
-    name: 'Alineación y Balanceo Láser 3D',
-    categoria: 'Suspensión',
-    precio: '120.000', tiempo: '1 hora',
-    desc: 'Alineación computarizada 3D de alta precisión y balanceo dinámico de las 4 ruedas para un manejo perfecto.',
-    features: ['Tecnología Láser 3D', 'Balanceo Dinámico', 'Rotación de Llantas']
-  },
-  {
-    id: 6,
-    img: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80',
-    name: 'Mantenimiento Transmisión Automática',
-    categoria: 'Mantenimiento',
-    precio: '450.000', tiempo: '4 horas',
-    desc: 'Extracción completa del fluido ATF viejo mediante máquina de diálisis y reemplazo del filtro interno.',
-    features: ['Fluido ATF 100% Sintético', 'Diálisis Completa', 'Cambio de Filtro Interno']
-  },
-  {
-    id: 7,
-    img: 'https://images.unsplash.com/photo-1521791055366-0d553872952f?w=800&q=80',
-    name: 'Detailing y Recubrimiento Cerámico',
-    categoria: 'Estética',
-    precio: '800.000', tiempo: '2 días',
-    desc: 'Corrección de pintura en 3 pasos y aplicación de recubrimiento cerámico 9H con duración de hasta 3 años.',
-    features: ['Corrección de Pintura', 'Cerámico 9H (3 Años)', 'Hidrofobia Extrema']
-  },
-  {
-    id: 8,
-    img: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80',
-    name: 'Restauración de Suspensión Deportiva',
-    categoria: 'Suspensión',
-    precio: '650.000', tiempo: '5 horas',
-    desc: 'Reemplazo de amortiguadores, bujes de poliuretano y copelas para restaurar la rigidez y el confort original.',
-    features: ['Amortiguadores a Gas', 'Bujes de Poliuretano', 'Garantía 1 Año']
-  },
-]
+const services = ref([])
+
+async function fetchServices() {
+  try {
+    const res = await fetch('http://localhost:8000/api/servicios')
+    if (res.ok) {
+      const data = await res.json()
+      const defaultImages = {
+        'Mantenimiento': 'https://images.unsplash.com/photo-1625047509168-a71c6f21223e?w=800&q=80',
+        'Frenos': 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&q=80',
+        'Suspensión': 'https://images.unsplash.com/photo-1593010185994-399dcda7a7cb?w=800&q=80',
+        'Llantas': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80',
+        'Diagnóstico': 'https://images.unsplash.com/photo-1486262715619-670810a0712c?w=800&q=80',
+        'Estética': 'https://images.unsplash.com/photo-1605556209355-1f9e9a48d80c?w=800&q=80'
+      }
+      
+      services.value = data.map(s => ({
+        id: s.id,
+        name: s.nombre,
+        categoria: s.categoria,
+        precio: s.precio.toLocaleString('es-CO'),
+        tiempo: s.duracion,
+        desc: s.descripcion,
+        img: s.imagen || defaultImages[s.categoria] || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80',
+        features: ['Calidad garantizada', 'Atención profesional']
+      }))
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
 
 const filteredServices = computed(() =>
-  services.filter(s => {
+  services.value.filter(s => {
     const matchCat    = currentFilter.value === 'todos' || s.categoria === currentFilter.value
     const matchSearch = !search.value ||
       s.name.toLowerCase().includes(search.value.toLowerCase()) ||

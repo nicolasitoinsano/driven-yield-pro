@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="calendar-wrapper">
     <FullCalendar :options="calendarOptions" />
     <div v-if="citaSeleccionada" class="modal-overlay" @click.self="cerrarModal">
@@ -41,6 +41,7 @@ import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import listPlugin from "@fullcalendar/list"
+import esLocale from "@fullcalendar/core/locales/es"
 import { useCitasStore } from "@/stores/citas"
 import { useAuthStore } from "@/stores/auth"
 const citasStore = useCitasStore()
@@ -55,26 +56,29 @@ const colores = {
   completada: { backgroundColor: "#EAF3DE", borderColor: "#639922", textColor: "#3B6D11" },
   cancelada:  { backgroundColor: "#FCEBEB", borderColor: "#E24B4A", textColor: "#A32D2D" },
 }
-const eventos = computed(() =>
-  citasStore.citas.map(c => ({
+const calendarOptions = ref({
+  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
+  initialView: "dayGridMonth",
+  headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,listMonth" },
+  buttonText: { today: "Hoy", month: "Mes", week: "Semana", list: "Lista" },
+  eventClick: handleEventClick,
+  height: "auto",
+  nowIndicator: true,
+  locale: esLocale,
+  events: []
+})
+
+import { watch } from 'vue'
+
+watch(() => citasStore.citas, (newCitas) => {
+  calendarOptions.value.events = newCitas.map(c => ({
     id:    String(c.id),
     title: c.servicio,
     start: c.fecha + "T" + c.hora,
     ...(colores[c.estado] || colores.pendiente),
     extendedProps: { cliente: c.cliente, vehiculo: c.vehiculo, fecha: c.fecha, hora: c.hora, notas: c.notas, monto: c.monto, estado: c.estado },
   }))
-)
-const calendarOptions = computed(() => ({
-  plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
-  initialView: "dayGridMonth",
-  headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,listMonth" },
-  buttonText: { today: "Hoy", month: "Mes", week: "Semana", list: "Lista" },
-  events: eventos,
-  eventClick: handleEventClick,
-  height: "auto",
-  nowIndicator: true,
-  locale: "es",
-}))
+}, { deep: true, immediate: true })
 function handleEventClick({ event }) {
   citaSeleccionada.value = event
   nuevoEstado.value = event.extendedProps.estado
@@ -101,7 +105,7 @@ async function cancelarEsta() {
   cargando.value = false
   cerrarModal()
 }
-onMounted(() => { if (citasStore.citas.length === 0) citasStore.fetchCitas() })
+
 </script>
 <style scoped>
 .calendar-wrapper { padding: 0.5rem 0; }

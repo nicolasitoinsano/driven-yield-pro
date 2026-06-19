@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <main class="calendario-root">
     <div class="cal-hero">
       <p class="hero-eyebrow">{{ isAdmin ? "Panel de gestión" : "Mis reservas" }}</p>
@@ -14,7 +14,7 @@
     <div class="cal-container">
       <div v-if="citasStore.loading" class="loading-state"><div class="spinner"></div><p>Cargando citas...</p></div>
       <div v-else-if="citasStore.error" class="error-state"><p>Error: {{ citasStore.error }}</p></div>
-      <CitasCalendar v-else />
+      <div class="fc-wrapper"><CitasCalendar /></div>
     </div>
     <div class="cal-actions" v-if="!isAdmin">
       <router-link to="/agendar" class="btn-agendar">+ Nueva cita</router-link>
@@ -93,74 +93,103 @@ onMounted(() => citasStore.fetchCitas())
 
 .cal-actions { text-align: center; margin-top: 1.5rem; }
 .btn-agendar {
-  display: inline-block;
-  background: #534AB7;
+  background: #dc2626; /* Strong red */
   color: #fff;
-  padding: .75rem 2rem;
-  border-radius: 10px;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
   text-decoration: none;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+  transition: all 0.3s;
 }
-.btn-agendar:hover { opacity: 0.88; }
-
-/* ✅ Corregido: un solo bloque limpio de overrides para FullCalendar */
-:deep(.fc .fc-button) {
-  background: rgba(255,255,255,0.08) !important;
-  border-color: rgba(255,255,255,0.15) !important;
-  color: #fff !important;
-  font-size: 13px !important;
-}
-:deep(.fc .fc-button-primary:not(:disabled).fc-button-active),
-:deep(.fc .fc-button-primary:not(:disabled):active) {
-  background: linear-gradient(135deg, #7f1d1d, #dc2626) !important;
-  border-color: rgba(220, 38, 38, 0.6) !important;
-  box-shadow: 0 0 12px rgba(220, 38, 38, 0.5) !important;
-  color: #fff !important;
-}
-:deep(.fc-theme-standard td),
-:deep(.fc-theme-standard th) {
-  border-color: rgba(255,255,255,0.08) !important;
-}
-:deep(.fc .fc-daygrid-day.fc-day-today)  { background: rgba(220,38,38,0.1) !important; }
-:deep(.fc .fc-daygrid-day-number)        { color: #fff; }
-:deep(.fc .fc-col-header-cell-cushion)   { color: rgba(255,255,255,0.6); }
-:deep(.fc-toolbar-title)                 { color: #fff; }
-:deep(.fc-event)                         { cursor: pointer; border-radius: 5px !important; font-size: 11px !important; }
-
-/* Fondo rojo en la cabecera de días */
-:deep(.fc .fc-col-header) {
-  background: linear-gradient(135deg, #1a0a0a 0%, #7f1d1d 40%, #dc2626 70%, #ff6b6b 100%) !important;
-  backdrop-filter: blur(10px) !important;
-  border-bottom: 1px solid rgba(220, 38, 38, 0.4) !important;
-  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255,255,255,0.1) !important;
+.btn-agendar:hover { 
+  background: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
 }
 
-:deep(.fc .fc-col-header-cell) {
-  background: transparent !important;
-  border-color: rgba(255, 80, 80, 0.2) !important;
-  position: relative !important;
+/* Custom Sleek FullCalendar Theme (Red & Black) */
+.fc-wrapper {
+  --fc-border-color: rgba(220, 38, 38, 0.15); /* Subtle red border */
+  --fc-button-text-color: white;
+  --fc-button-bg-color: #1a0a0a; /* Very dark black/red */
+  --fc-button-border-color: rgba(220, 38, 38, 0.3);
+  --fc-button-hover-bg-color: rgba(220, 38, 38, 0.2);
+  --fc-button-hover-border-color: rgba(220, 38, 38, 0.6);
+  --fc-button-active-bg-color: #dc2626; /* Strong Red */
+  --fc-button-active-border-color: #dc2626;
+  --fc-today-bg-color: rgba(220, 38, 38, 0.08); /* Faint red today background */
+  color: white;
+  font-family: 'Outfit', sans-serif;
+  background-color: #0d0000; /* Pure deep black with a hint of red */
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(220,38,38,0.05);
 }
 
-:deep(.fc .fc-col-header-cell::after) {
-  content: '' !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 10% !important;
-  width: 80% !important;
-  height: 1px !important;
-  background: linear-gradient(90deg, transparent, rgba(255,100,100,0.6), transparent) !important;
+:deep(.fc-theme-standard td), :deep(.fc-theme-standard th) {
+  border-color: var(--fc-border-color);
 }
-
-/* Texto de los días (Lun, Mar...) en blanco y legible */
-:deep(.fc .fc-col-header-cell-cushion) {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-  font-size: 13px !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 8px 4px !important;
+:deep(.fc-col-header-cell) {
+  background-color: #1a0505; /* Darker header row */
+}
+:deep(.fc-col-header-cell-cushion), :deep(.fc-daygrid-day-number) {
+  color: #ff9999; /* Bright red tint for numbers and text */
+  font-family: 'Space Grotesk', sans-serif;
   text-decoration: none !important;
+}
+:deep(.fc-event) {
+  cursor: pointer;
+  border-radius: 6px !important;
+  padding: 4px 6px;
+  font-size: 0.75rem !important;
+  border: 1px solid rgba(220, 38, 38, 0.3) !important;
+  background-color: #1a0a0a !important; /* Black background for events */
+  color: #ffcccc !important; /* Redish text */
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+:deep(.fc-event:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
+  border-color: #dc2626 !important;
+}
+/* Multiline Events Fix */
+:deep(.fc-event),
+:deep(.fc-daygrid-event),
+:deep(.fc-event-main),
+:deep(.fc-event-title),
+:deep(.fc-event-main-frame) {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+  overflow: visible !important;
+  display: block !important;
+  height: auto !important;
+  min-height: max-content !important;
+  line-height: 1.3 !important;
+}
+:deep(.fc-daygrid-event-harness),
+:deep(.fc-daygrid-event-harness-abs) {
+  height: auto !important;
+}
+:deep(.fc-toolbar-title) {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  color: white;
+  font-size: 1.5rem !important;
+  letter-spacing: -0.5px;
+}
+:deep(.fc-button) {
+  border-radius: 6px !important;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 </style>

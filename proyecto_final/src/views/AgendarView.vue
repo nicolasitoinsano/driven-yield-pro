@@ -103,12 +103,33 @@
               <div class="step-panel-header">
                 <div class="sph-num">02</div>
                 <div>
-                  <h2 class="sph-title">DATOS DE LA <span>MÁQUINA</span></h2>
-                  <p class="sph-sub">Ingrese la telemetría básica del vehículo.</p>
+                  <h2 class="sph-title">DATOS DEL <span>VEHÍCULO</span></h2>
+                  <p class="sph-sub">Seleccione un vehículo registrado o ingrese los datos.</p>
                 </div>
               </div>
 
-              <div class="fields-grid">
+              <!-- Selector de vehículos -->
+              <div class="vehicle-selector" style="margin-bottom: 2rem; display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                <button
+                  v-for="v in userVehicles" :key="v.id_vehiculo"
+                  :class="['vehicle-btn matte-card', { selected: selectedVehicleId === v.id_vehiculo }]"
+                  @click="selectVehicle(v)"
+                  style="flex: 0 0 auto; text-align: left; padding: 1rem; border-radius: 8px;"
+                >
+                  <strong style="display:block; color: white;">{{v.marca}} {{v.modelo}}</strong>
+                  <span style="font-size: 0.8rem; color: var(--primary);">{{v.numero_de_placa}}</span>
+                </button>
+                <button
+                  :class="['vehicle-btn matte-card', { selected: selectedVehicleId === 'manual' }]"
+                  @click="selectVehicle('manual')"
+                  style="flex: 0 0 auto; text-align: center; padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.2);"
+                >
+                  <strong style="display:block; color: white;">+ Nuevo Vehículo</strong>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">Ingresar manual</span>
+                </button>
+              </div>
+
+              <div class="fields-grid" :class="{'locked-fields': selectedVehicleId !== 'manual'}">
                 <div class="form-group">
                   <label>FABRICANTE <span class="req">*</span></label>
                   <input v-model="form.marca" type="text" placeholder="Ej: Toyota, Ford" />
@@ -146,6 +167,7 @@
                 <div class="form-group">
                   <label>FECHA OPERATIVA <span class="req">*</span></label>
                   <input v-model="form.fecha" type="date" :min="minDate" />
+                  <p v-if="dateError" class="text-red mt-1" style="font-size: 0.85rem; margin-top: 0.5rem; text-shadow: 0 0 10px rgba(239,68,68,0.5);">{{ dateError }}</p>
                 </div>
                 <div class="form-group">
                   <label>VENTANA DE TIEMPO <span class="req">*</span></label>
@@ -204,7 +226,7 @@
                 </div>
 
                 <div class="summary-section matte-card-sub">
-                  <p class="ss-title">MÁQUINA</p>
+                  <p class="ss-title">VEHÍCULO</p>
                   <div class="ss-row"><span>ID VINCULADA</span><strong>{{ form.marca }} {{ form.modelo }} {{ form.anio }}</strong></div>
                   <div class="ss-row"><span>MATRÍCULA</span><strong>{{ form.placa }}</strong></div>
                   <div class="ss-row" v-if="form.color"><span>PIGMENTO</span><strong>{{ form.color }}</strong></div>
@@ -238,7 +260,7 @@
               Siguiente Fase →
             </button>
             <button v-else class="btn btn-primary btn-confirm" @click="submitForm" :disabled="citasStore.loading">
-              {{ citasStore.loading ? 'Procesando...' : 'Ejecutar Solicitud' }}
+              {{ citasStore.loading ? 'Procesando...' : 'Agendar Cita' }}
             </button>
           </div>
 
@@ -259,12 +281,12 @@
           <div class="sm-details">
             <div class="sm-row"><span>MÓDULO:</span> <strong>{{ form.servicio }}</strong></div>
             <div class="sm-row"><span>HORARIO:</span> <strong>{{ form.fecha }} // {{ form.hora }}</strong></div>
-            <div class="sm-row"><span>MÁQUINA:</span> <strong>{{ form.marca }} {{ form.modelo }}</strong></div>
+            <div class="sm-row"><span>VEHÍCULO:</span> <strong>{{ form.marca }} {{ form.modelo }}</strong></div>
           </div>
           
           <div class="sm-actions">
             <router-link to="/" class="btn btn-ghost">Retornar al Sistema</router-link>
-            <router-link to="/perfil?tab=citas" class="btn btn-primary">Monitorear Estado</router-link>
+            <router-link to="/perfil?tab=citas" class="btn btn-primary">Ver Detalles</router-link>
           </div>
         </div>
       </div>
@@ -279,10 +301,13 @@ import { useCitasStore } from '../stores/citas'
 import { useToast } from '../stores/toast'
 import { storeToRefs } from 'pinia'
 import { API_BASE_URL } from '../config/api'
+import { useRoute, useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const citasStore = useCitasStore()
 const toast = useToast()
+const route = useRoute()
+const router = useRouter()
 const { user } = storeToRefs(auth)
 
 const currentStep = ref(1)
@@ -302,13 +327,45 @@ onMounted(async () => {
 
   try {
     const res = await fetch(`${API_BASE_URL}/citas/mecanicos`)
-    if(res.ok) mecanicos.value = await res.json()
+    if(res.ok) {
+      const data = await res.json()
+      mecanicos.value = data
+    }
   } catch(e) {
-    mecanicos.value = [
-      {id_mecanico: 1, nombre: "Juan Perez (Demo)", especialidad: "General"},
-      {id_mecanico: 2, nombre: "Carlos Diaz (Demo)", especialidad: "Transmisiones"}
-    ]
+    console.error("Error al cargar mecanicos:", e)
   }
+
+  // Fetch Services
+  try {
+    const res = await fetch(`${API_BASE_URL}/servicios`)
+    if(res.ok) {
+      const data = await res.json()
+      serviciosData.value = data.map(s => ({
+        icon: '🔧',
+        name: s.nombre,
+        precio: s.precio.toLocaleString('es-CO'),
+        desc: s.descripcion,
+        precioRaw: s.precio
+      }))
+    }
+  } catch(e) {
+    console.error("Error cargando servicios:", e)
+  }
+
+  // Fetch User Vehicles
+  try {
+    const res = await fetch(`${API_BASE_URL}/perfil`, { headers: auth.authHeaders() })
+    if(res.ok) {
+      const data = await res.json()
+      userVehicles.value = data.vehiculos || []
+      
+      const qvId = route.query.vehiculoId
+      if(qvId) {
+        const v = userVehicles.value.find(x => x.id_vehiculo == qvId)
+        if(v) selectVehicle(v)
+      }
+    }
+  } catch(e) { console.error("Error cargando perfil:", e) }
 })
 
 onUnmounted(() => {
@@ -329,23 +386,39 @@ const form = reactive({
   id_mecanico: ''
 })
 
-const serviciosData = [
-  { icon:'🛢️', name:'Mantenimiento Preventivo PRO',         precio:'180.000',  desc:'Aceite sintético y filtros OEM.' },
-  { icon:'💻', name:'Diagnóstico Computarizado Avanzado',           precio:'90.000',  desc:'Escáner OBD2 y diagnóstico de sensores.' },
-  { icon:'🛑', name:'Actualización a Frenos Cerámicos',              precio:'350.000', desc:'Frenos de alto desempeño y rectificado.' },
-  { icon:'⚡', name:'Sincronización Electrónica',                 precio:'250.000',  desc:'Bujías iridio y limpieza inyectores.' },
-  { icon:'📐', name:'Alineación y Balanceo Láser 3D',          precio:'120.000',  desc:'Alineación láser 3D de 4 ruedas.' },
-  { icon:'⚙️', name:'Mantenimiento Transmisión Automática',        precio:'450.000', desc:'Diálisis completa y fluido ATF.' },
-  { icon:'✨', name:'Detailing y Recubrimiento Cerámico',        precio:'800.000', desc:'Corrección y protección cerámica 9H.' },
-  { icon:'🚗', name:'Restauración de Suspensión Deportiva',        precio:'650.000', desc:'Amortiguadores y bujes nuevos.' },
-]
+const dateError = ref('')
 
-const selectedService = computed(() => serviciosData.find(s => s.name === form.servicio))
+const serviciosData = ref([])
+
+const selectedService = computed(() => serviciosData.value.find(s => s.name === form.servicio))
 const horas = ref([])
 const mecanicos = ref([])
-const minDate = new Date().toISOString().split('T')[0]
+const userVehicles = ref([])
+const selectedVehicleId = ref('manual')
+const tzOffset = (new Date()).getTimezoneOffset() * 60000
+const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, 10)
+const minDate = localISOTime
+
+function selectVehicle(v) {
+  if(v === 'manual') {
+    selectedVehicleId.value = 'manual'
+    form.marca = ''
+    form.modelo = ''
+    form.anio = ''
+    form.placa = ''
+    form.color = ''
+  } else {
+    selectedVehicleId.value = v.id_vehiculo
+    form.marca = v.marca
+    form.modelo = v.modelo
+    form.anio = v.año || ''
+    form.placa = v.numero_de_placa || ''
+    form.color = v.color || ''
+  }
+}
 
 watch(() => form.fecha, async (newFecha) => {
+  dateError.value = ''
   if(!newFecha) { horas.value = []; return }
   try {
     const res = await fetch(`${API_BASE_URL}/citas/disponibilidad?fecha=${newFecha}`)
@@ -358,25 +431,43 @@ watch(() => form.fecha, async (newFecha) => {
 
 function nextStep() {
   if (currentStep.value === 1 && !form.servicio) { toast.error('Seleccione un módulo técnico.'); return }
-  if (currentStep.value === 2 && (!form.marca || !form.modelo || !form.anio || !form.placa)) { toast.error('Ingrese los datos requeridos de la máquina.'); return }
-  if (currentStep.value === 3 && (!form.fecha || !form.hora || !form.cliente)) { toast.error('Establezca el cronograma y operador.'); return }
+  if (currentStep.value === 2) {
+    if (selectedVehicleId.value === 'manual' && (!form.marca || !form.modelo || !form.anio || !form.placa)) {
+      toast.error('Ingrese los datos requeridos del vehículo.')
+      return
+    }
+  }
+  if (currentStep.value === 3) {
+    if (!form.fecha || !form.hora || !form.cliente) {
+      toast.error('Establezca el cronograma y operador.')
+      return
+    }
+    const selectedDate = new Date(form.fecha + 'T00:00:00')
+    const today = new Date(minDate + 'T00:00:00')
+    if (selectedDate < today) {
+      dateError.value = 'Atención: No se puede agendar para fechas que ya pasaron.'
+      toast.error('No se puede agendar para fechas pasadas.')
+      return
+    }
+    dateError.value = ''
+  }
   currentStep.value++
 }
 
 async function submitForm() {
   const result = await citasStore.agregarCita({
-    cliente:  form.cliente,
-    vehiculo: `${form.marca} ${form.modelo} ${form.anio}`,
-    marca:    form.marca,
-    modelo:   form.modelo,
-    anio:     form.anio,
-    color:    form.color,
-    placa:    form.placa,
-    servicio: form.servicio,
-    fecha:    form.fecha,
-    hora:     form.hora,
-    notas:    form.notas,
-    monto:    parseInt(selectedService.value?.precio.replace('.', '')) || 0,
+    cliente:  form.cliente || '',
+    vehiculo: `${form.marca || ''} ${form.modelo || ''} ${form.anio || ''}`.trim(),
+    marca:    form.marca || '',
+    modelo:   form.modelo || '',
+    anio:     form.anio ? String(form.anio) : '',
+    color:    form.color || '',
+    placa:    form.placa || '',
+    servicio: form.servicio || '',
+    fecha:    form.fecha || '',
+    hora:     form.hora || '',
+    notas:    form.notas || '',
+    monto:    selectedService.value?.precioRaw || 0,
     id_mecanico: form.id_mecanico ? parseInt(form.id_mecanico) : null,
   })
   if (result.ok) {
@@ -635,4 +726,15 @@ async function submitForm() {
   .form-area { padding: 2rem; }
   .services-grid, .fields-grid, .summary-grid { grid-template-columns: 1fr; }
 }
+
+/* VEHICLE SELECTOR */
+.vehicle-btn {
+  border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(0,0,0,0.3);
+}
+.vehicle-btn:hover { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+.vehicle-btn.selected {
+  border-color: var(--primary); background: rgba(230,0,35,0.05); box-shadow: 0 5px 15px rgba(230,0,35,0.2);
+}
+.locked-fields { opacity: 0.7; pointer-events: none; }
 </style>

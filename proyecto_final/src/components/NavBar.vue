@@ -12,8 +12,9 @@
   <li><router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">Inicio</router-link></li>
   <li><router-link to="/servicios" class="nav-link" :class="{ active: $route.path === '/servicios' }">Servicios</router-link></li>
   <li><router-link to="/agendar" class="nav-link" :class="{ active: $route.path === '/agendar' }">Agendar</router-link></li>
+  <li v-if="user"><router-link to="/perfil" class="nav-link" :class="{ active: $route.path === '/perfil' }">Mi Perfil</router-link></li>
   <li v-if="user"><router-link to="/calendario" class="nav-link" :class="{ active: $route.path === '/calendario' }">Calendario</router-link></li>
-  <li v-if="user"><router-link to="/mecanicos" class="nav-link" :class="{ active: $route.path === '/mecanicos' }">Mecánicos</router-link></li>
+  <li v-if="user?.role === 'admin'"><router-link to="/mecanicos" class="nav-link" :class="{ active: $route.path === '/mecanicos' }">Mecánicos</router-link></li>
   <li v-if="user?.role === 'admin'">
     <router-link to="/admin" class="nav-link" :class="{ active: $route.path === '/admin' }">Admin</router-link>
   </li>
@@ -101,9 +102,11 @@
       <router-link to="/" class="mob-link" @click="mobileOpen = false">Inicio</router-link>
       <router-link to="/servicios" class="mob-link" @click="mobileOpen = false">Servicios</router-link>
       <router-link to="/agendar" class="mob-link" @click="mobileOpen = false">Agendar</router-link>
+      <router-link v-if="user" to="/perfil" class="mob-link" @click="mobileOpen = false">Mi Perfil</router-link>
+      <router-link v-if="user" to="/calendario" class="mob-link" @click="mobileOpen = false">Calendario</router-link>
       <router-link v-if="user?.role === 'admin'" to="/admin" class="mob-link" @click="mobileOpen = false">Admin</router-link>
       <div class="mob-actions">
-        <router-link v-if="user" to="/mecanicos" class="mob-link" @click="mobileOpen = false">Mecánicos</router-link>
+        <router-link v-if="user?.role === 'admin'" to="/mecanicos" class="mob-link" @click="mobileOpen = false">Mecánicos</router-link>
         <router-link v-if="!user" to="/login" class="btn btn-primary" @click="mobileOpen = false">Iniciar Sesión</router-link>
         <button v-else class="mob-logout" @click="handleLogout">Cerrar Sesión</button>
       </div>
@@ -159,20 +162,20 @@ onUnmounted(() => {
 }
 
 /* Logo */
-.nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-.brand-image { width: 45px; height: 45px; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transition: transform 0.3s ease; }
-.nav-logo:hover .brand-image { transform: scale(1.05) rotate(-2deg); }
-.brand-text { display: flex; flex-direction: column; line-height: 1; }
+.nav-logo { display: flex; align-items: center; gap: 1rem; text-decoration: none; }
+.brand-image { width: 85px; height: 85px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); transition: transform 0.3s ease; }
+.nav-logo:hover .brand-image { transform: scale(1.08) rotate(-2deg); }
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .logo-brand {
   font-family: 'Montserrat', sans-serif;
-  font-size: 1.3rem; font-weight: 900;
+  font-size: 1.4rem; font-weight: 900;
   color: white; letter-spacing: 1.5px;
 }
 .logo-brand span { color: var(--primary); }
 .logo-sub {
-  font-size: 0.55rem; letter-spacing: 4px;
+  font-size: 0.6rem; letter-spacing: 4px;
   color: var(--text-secondary); text-transform: uppercase;
-  margin-top: 2px; font-weight: 600;
+  margin-top: 3px; font-weight: 700;
 }
 
 /* Links */
