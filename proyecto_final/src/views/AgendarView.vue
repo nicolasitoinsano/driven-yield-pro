@@ -347,6 +347,15 @@ onMounted(async () => {
         desc: s.descripcion,
         precioRaw: s.precio
       }))
+      
+      const qService = route.query.servicioId
+      if(qService) {
+        const foundService = serviciosData.value.find(x => x.name === qService)
+        if (foundService) {
+          form.servicio = foundService.name
+          currentStep.value = 2
+        }
+      }
     }
   } catch(e) {
     console.error("Error cargando servicios:", e)

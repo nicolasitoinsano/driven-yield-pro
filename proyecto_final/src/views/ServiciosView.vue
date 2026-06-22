@@ -75,7 +75,7 @@
                   {{ s.tiempo }}
                 </div>
               </div>
-              <router-link to="/agendar" class="srv-btn">
+              <router-link :to="{ path: '/agendar', query: { servicioId: s.name } }" class="srv-btn">
                 Seleccionar <span class="arr">→</span>
               </router-link>
             </div>
