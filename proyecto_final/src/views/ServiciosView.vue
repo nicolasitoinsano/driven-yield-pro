@@ -42,12 +42,11 @@
 
     <!-- Grid de servicios -->
     <section class="services-section">
-      <div class="services-grid" v-if="filteredServices.length">
+      <transition-group name="list" tag="div" class="services-grid" v-if="filteredServices.length">
         <div
-          v-for="(s, i) in filteredServices"
+          v-for="s in filteredServices"
           :key="s.id"
-          class="matte-card srv-card observe-me"
-          :style="`transition-delay: ${(i % 3) * 0.15}s`"
+          class="matte-card srv-card"
         >
           <!-- Imagen -->
           <div class="srv-img-wrap">
@@ -82,7 +81,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </transition-group>
 
       <!-- Sin resultados -->
       <div v-else class="no-results observe-me">
@@ -140,6 +139,7 @@ const filters = [
   { label: 'Suspensión',     value: 'Suspensión' },
   { label: 'Frenos',         value: 'Frenos' },
   { label: 'Diagnóstico',    value: 'Diagnóstico' },
+  { label: 'Llantas',        value: 'Llantas' },
   { label: 'Estética',       value: 'Estética' }
 ]
 
@@ -150,15 +150,17 @@ async function fetchServices() {
     const res = await fetch('http://localhost:8000/api/servicios')
     if (res.ok) {
       const data = await res.json()
-      const defaultImages = {
-        'Mantenimiento': 'https://images.unsplash.com/photo-1625047509168-a71c6f21223e?w=800&q=80',
-        'Frenos': 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&q=80',
-        'Suspensión': 'https://images.unsplash.com/photo-1593010185994-399dcda7a7cb?w=800&q=80',
-        'Llantas': 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&q=80',
-        'Diagnóstico': 'https://images.unsplash.com/photo-1486262715619-670810a0712c?w=800&q=80',
-        'Estética': 'https://images.unsplash.com/photo-1605556209355-1f9e9a48d80c?w=800&q=80'
+      const customImages = {
+        'Mantenimiento Preventivo PRO': '/img/servicios/mantenimiento.png',
+        'Diagnóstico Computarizado Avanzado': '/img/servicios/diagnostico.png',
+        'Actualización a Frenos Cerámicos': '/img/servicios/frenos.png',
+        'Sincronización Electrónica': '/img/servicios/sincronizacion.png',
+        'Alineación y Balanceo Láser 3D': '/img/servicios/alineacion.png',
+        'Mantenimiento Transmisión Automática': '/img/servicios/transmision.png',
+        'Detailing y Recubrimiento Cerámico': '/img/servicios/detailing.png',
+        'Restauración de Suspensión Deportiva': '/img/servicios/suspension.png'
       }
-      
+
       services.value = data.map(s => ({
         id: s.id,
         name: s.nombre,
@@ -166,7 +168,7 @@ async function fetchServices() {
         precio: s.precio.toLocaleString('es-CO'),
         tiempo: s.duracion,
         desc: s.descripcion,
-        img: s.imagen || defaultImages[s.categoria] || 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80',
+        img: s.imagen || customImages[s.nombre] || '/img/servicios/mantenimiento.png',
         features: ['Calidad garantizada', 'Atención profesional']
       }))
     }
@@ -175,15 +177,26 @@ async function fetchServices() {
   }
 }
 
-const filteredServices = computed(() =>
-  services.value.filter(s => {
-    const matchCat    = currentFilter.value === 'todos' || s.categoria === currentFilter.value
-    const matchSearch = !search.value ||
-      s.name.toLowerCase().includes(search.value.toLowerCase()) ||
-      s.desc.toLowerCase().includes(search.value.toLowerCase())
+const filteredServices = computed(() => {
+  const norm = (str) => {
+    if (!str) return ''
+    return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
+  }
+  const fNorm = norm(currentFilter.value)
+  const sNorm = norm(search.value)
+
+  return services.value.filter(s => {
+    const cNorm = norm(s.categoria)
+    const matchCat = currentFilter.value === 'todos' || cNorm === fNorm || cNorm.includes(fNorm)
+    
+    const matchSearch = !search.value || 
+      norm(s.name).includes(sNorm) || 
+      norm(s.desc).includes(sNorm) ||
+      cNorm.includes(sNorm)
+
     return matchCat && matchSearch
   })
-)
+})
 </script>
 
 <style scoped>
@@ -208,6 +221,20 @@ const filteredServices = computed(() =>
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .observe-me.is-visible { opacity: 1; transform: translateY(0); }
+
+/* LIST TRANSITIONS FOR FILTERS */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.list-leave-active {
+  position: absolute;
+}
 
 /* HEADER */
 .page-header {

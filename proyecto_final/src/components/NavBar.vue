@@ -12,7 +12,6 @@
   <li><router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">Inicio</router-link></li>
   <li><router-link to="/servicios" class="nav-link" :class="{ active: $route.path === '/servicios' }">Servicios</router-link></li>
   <li><router-link to="/agendar" class="nav-link" :class="{ active: $route.path === '/agendar' }">Agendar</router-link></li>
-  <li v-if="user"><router-link to="/perfil" class="nav-link" :class="{ active: $route.path === '/perfil' }">Mi Perfil</router-link></li>
   <li v-if="user"><router-link to="/calendario" class="nav-link" :class="{ active: $route.path === '/calendario' }">Calendario</router-link></li>
   <li v-if="user?.role === 'admin'"><router-link to="/mecanicos" class="nav-link" :class="{ active: $route.path === '/mecanicos' }">Mecánicos</router-link></li>
   <li v-if="user?.role === 'admin'">

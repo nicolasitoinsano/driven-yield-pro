@@ -283,6 +283,7 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
 # ── PUT /api/citas/{id}/estado ────────────────────────────────────────────────
 
 @router.put("/{cita_id}/estado")
+@router.patch("/{cita_id}/estado")
 def update_estado(cita_id: int, body: EstadoBody, authorization: str = Header(None)):
     payload = get_current_user(authorization)
     uid  = payload["sub"]

@@ -51,6 +51,13 @@
           <div class="date-badge">{{ new Date().toLocaleDateString('es-CO') }}</div>
         </header>
 
+        <!-- Print Only Header -->
+        <div class="print-header">
+          <h1>DRIVEN YIELD <span>PRO</span></h1>
+          <p>REPORTE DE OPERACIONES Y RENDIMIENTO - {{ new Date().toLocaleDateString() }}</p>
+          <hr class="print-divider" />
+        </div>
+
         <transition name="fade" mode="out-in">
           
           <!-- DASHBOARD TAB -->
@@ -785,43 +792,64 @@ function handleLogout() {
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
 
+.print-header { display: none; }
+
 @media (max-width: 1024px) {
   .admin-layout { flex-direction: column; }
   .sidebar { height: auto; position: relative; top: 0; flex: none; }
 }
 @media print {
-  body {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  html, body, .admin-root {
+    background-color: #050505 !important;
+    color: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
   .sidebar, .topbar, .filter-bar, .actions, .modal-overlay, .success-overlay, button {
     display: none !important;
   }
-  .content-area {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
+  .print-header { display: block !important; margin-bottom: 2rem !important; }
+  .print-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px !important; font-weight: 900 !important; color: white !important; margin: 0 !important; }
+  .print-header h1 span { color: transparent !important; -webkit-text-stroke: 1px #e60023 !important; }
+  .print-header p { color: #888 !important; font-size: 12px !important; margin-top: 5px !important; letter-spacing: 2px !important; }
+  .print-divider { border-top: 1px solid rgba(230,0,35,0.4) !important; margin-top: 10px !important; border-bottom: none !important; }
+
+  .content-area { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  
+  .table-container { overflow: visible !important; width: 100% !important; padding: 0 !important; }
+  
+  .matte-card { 
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 20px !important;
+    border-radius: 8px !important;
   }
-  .admin-root {
-    background: white !important;
-    color: black !important;
-    padding: 0 !important;
-  }
-  .chart-section {
-    border: 1px solid #ccc !important;
-    background: white !important;
-    color: black !important;
-  }
-  h1, h2, h3, p, span, div, td, th {
-    color: black !important;
-    text-shadow: none !important;
-  }
-  .bar-track { background: #eee !important; border: 1px solid #ccc !important; }
+
+  h1, h2, h3, p, span, div, td, th { color: white !important; text-shadow: none !important; }
+  .text-muted { color: #888 !important; }
+  
+  .hero-title span { color: transparent !important; -webkit-text-stroke: 1px #e60023 !important; }
+
+  .bar-track { background: rgba(255,255,255,0.1) !important; border: none !important; }
   .bar-fill.fill-green { background-color: #00ff88 !important; }
   .bar-fill.fill-yellow { background-color: #ffcc00 !important; }
-  .text-green { color: #00cc6d !important; }
-  .data-table th { background: #f0f0f0 !important; border-bottom: 2px solid #ccc !important; }
-  .data-table td { border-bottom: 1px solid #ddd !important; }
-  .matte-card { border: none !important; box-shadow: none !important; background: transparent !important; }
+
+  .data-table { width: 100% !important; table-layout: auto !important; }
+  .data-table th { background: rgba(255,255,255,0.05) !important; border-bottom: 1px solid rgba(230,0,35,0.3) !important; color: #e60023 !important; font-size: 10px !important; }
+  .data-table td { border-bottom: 1px solid rgba(255,255,255,0.05) !important; font-size: 11px !important; white-space: normal !important; word-wrap: break-word !important; word-break: break-word !important; }
+
+  .status-badge { border: 1px solid rgba(255,255,255,0.2) !important; background: transparent !important; font-weight: 700 !important; }
+  .status-badge.completada { border-color: #00ff88 !important; color: #00ff88 !important; }
+  .status-badge.pendiente { border-color: #ffcc00 !important; color: #ffcc00 !important; }
+  .status-badge.cancelada { border-color: #e60023 !important; color: #e60023 !important; }
+  .status-badge.confirmada { border-color: #00ccff !important; color: #00ccff !important; }
+
+  .stats-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
 }
 </style>

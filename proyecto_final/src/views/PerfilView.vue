@@ -158,9 +158,14 @@
                   <div class="tl-details">
                     <span>Monto: ${{ cita.monto }} COP</span>
                   </div>
-                  <button v-if="cita.estado === 'pendiente'" class="btn btn-ghost btn-sm text-red mt-3" @click="cancelarCita(cita.id)">
-                    CANCELAR ORDEN
-                  </button>
+                  <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button v-if="cita.estado === 'pendiente'" class="btn btn-ghost btn-sm text-red" @click="cancelarCita(cita.id)">
+                      CANCELAR ORDEN
+                    </button>
+                    <button v-if="cita.estado === 'pendiente'" class="btn btn-ghost btn-sm text-primary" @click="abrirEditarCita(cita)">
+                      EDITAR ORDEN
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -224,6 +229,30 @@
         </transition>
       </div>
     </div>
+
+    <!-- Edit Cita Modal -->
+    <transition name="fade">
+      <div v-if="showEditModal" class="password-change-box" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);" @click.self="showEditModal = false">
+        <div class="matte-card" style="width: 100%; max-width: 450px; padding: 2rem;">
+          <h2 class="sm-title" style="margin-bottom: 0.5rem; color: white;">MODIFICAR <span style="color: var(--primary);">ORDEN</span></h2>
+          <p class="form-note" style="margin-bottom: 1.5rem; color: var(--text-muted);">Puedes cambiar la fecha y hora de tu cita pendiente.</p>
+          
+          <div class="form-group">
+            <label>NUEVA FECHA</label>
+            <input v-model="editCitaForm.fecha" type="date" :min="new Date().toISOString().split('T')[0]" />
+          </div>
+          <div class="form-group mt-3">
+            <label>NUEVA HORA</label>
+            <input v-model="editCitaForm.hora" type="time" />
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button class="btn btn-primary" style="flex: 1;" @click="guardarEdicionCita">GUARDAR CAMBIOS</button>
+            <button class="btn btn-ghost" style="flex: 1;" @click="showEditModal = false">CANCELAR</button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </main>
 </template>
 
@@ -260,6 +289,11 @@ const originalData = ref({
 const showPasswordChange = ref(false)
 const showAddVehicle = ref(false)
 const newVehicle = ref({ placa: '', anio: '', marca: '', modelo: '', color: '' })
+
+// Modal Edit Cita
+const showEditModal = ref(false)
+const editCitaSelected = ref(null)
+const editCitaForm = ref({ fecha: '', hora: '' })
 
 const hasChanges = computed(() => {
   return editForm.value.nombre !== originalData.value.nombre ||
@@ -398,6 +432,50 @@ async function cancelarCita(id) {
       toast.success('Orden cancelada.')
     } else {
       toast.error('No se pudo cancelar.')
+    }
+  } catch (e) {
+    toast.error('Error de red.')
+  }
+}
+
+function abrirEditarCita(cita) {
+  editCitaSelected.value = cita
+  editCitaForm.value.fecha = cita.fecha
+  editCitaForm.value.hora = cita.hora
+  showEditModal.value = true
+}
+
+async function guardarEdicionCita() {
+  if (!editCitaForm.value.fecha || !editCitaForm.value.hora) {
+    toast.error('Por favor selecciona fecha y hora.')
+    return
+  }
+  const payload = {
+    cliente: editCitaSelected.value.cliente || auth.user.name,
+    vehiculo: editCitaSelected.value.vehiculo || '',
+    placa: editCitaSelected.value.placa || '',
+    servicio: editCitaSelected.value.servicio,
+    fecha: editCitaForm.value.fecha,
+    hora: editCitaForm.value.hora,
+    notas: editCitaSelected.value.notas || '',
+    monto: editCitaSelected.value.monto || 0,
+    id_mecanico: null
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/citas/${editCitaSelected.value.id}`, {
+      method: 'PUT',
+      headers: auth.authHeaders(),
+      body: JSON.stringify(payload)
+    })
+    
+    if (res.ok) {
+      toast.success('Cita modificada con éxito.')
+      showEditModal.value = false
+      await citasStore.fetchCitas()
+    } else {
+      const err = await res.json()
+      toast.error(err.detail || 'Error al modificar cita.')
     }
   } catch (e) {
     toast.error('Error de red.')

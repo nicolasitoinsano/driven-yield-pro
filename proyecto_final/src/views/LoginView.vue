@@ -231,7 +231,7 @@ async function handleLogin() {
   const res = await auth.login(loginForm.username, loginForm.password)
   if (!res.ok) { toast.error(res.error); return }
   toast.success(`Acceso concedido, ${auth.user.nombre}.`)
-  window.location.href = auth.user.role === 'admin' ? '/admin' : '/'
+  router.push(auth.user.role === 'admin' ? '/admin' : '/')
 }
 
 async function handleAdminLogin() {
@@ -239,7 +239,7 @@ async function handleAdminLogin() {
   const res = await auth.loginAdmin(adminForm.email, adminForm.password)
   if (!res.ok) { toast.error(res.error); return }
   toast.success(`Privilegios elevados confirmados, ${auth.user.nombre}.`)
-  window.location.href = '/admin'
+  router.push('/admin')
 }
 
 async function handleRegister() {
