@@ -147,6 +147,26 @@ select option { background: var(--bg-matte); color: white; }
   letter-spacing: 3px;
 }
 
+.btn-danger {
+  background: transparent;
+  color: #ff5c5c;
+  border: 1px solid #ff5c5c;
+  box-shadow: none;
+}
+
+.btn-danger:hover {
+  background: #ff5c5c;
+  color: #0a0a0a;
+  box-shadow: 0 10px 30px rgba(255, 92, 92, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
 .btn-ghost {
   background: transparent;
   color: var(--text-primary);

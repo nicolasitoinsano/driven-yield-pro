@@ -136,14 +136,46 @@ def _resolve_or_create_vehiculo(conn, uid: int, body: CitaBody) -> int:
     return cur.lastrowid
 
 
-def _resolve_servicio(conn, nombre: str) -> int:
+def _resolve_servicio(conn, nombre: str):
+    """Retorna (id_servicio, categoria) del servicio buscado por nombre."""
     cur = conn.cursor()
-    cur.execute("SELECT id_servicio FROM servicio WHERE nombre = %s LIMIT 1", (nombre,))
+    cur.execute("SELECT id_servicio, categoria FROM servicio WHERE nombre = %s LIMIT 1", (nombre,))
     row = cur.fetchone()
     if not row:
         # [CIT-3] Error explícito — no silenciar con id=1
         raise HTTPException(status_code=400, detail=f"Servicio '{nombre}' no encontrado")
-    return row["id_servicio"]
+    return row["id_servicio"], row["categoria"]
+
+
+def _seleccionar_mecanico_automatico(conn, categoria: str):
+    """
+    [CIT-9] Asignación automática de mecánico según el tipo de servicio.
+
+    En vez de elegir un mecánico al azar entre todos los disponibles, se busca
+    primero un mecánico cuya 'especialidad' coincida con la 'categoria' del
+    servicio solicitado. Si ninguno coincide, se cae al comportamiento
+    anterior (cualquier mecánico disponible al azar).
+    """
+    cur = conn.cursor()
+
+    if categoria:
+        categoria = categoria.strip()
+        cur.execute(
+            """SELECT id_mecanico FROM mecanico
+               WHERE disponible = 1
+                 AND especialidad IS NOT NULL
+                 AND (especialidad LIKE %s OR %s LIKE CONCAT('%%', especialidad, '%%'))
+               ORDER BY RAND() LIMIT 1""",
+            (f"%{categoria}%", categoria)
+        )
+        mec = cur.fetchone()
+        if mec:
+            return mec["id_mecanico"]
+
+    # Fallback: ningún mecánico con esa especialidad disponible -> cualquiera disponible
+    cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
+    mec = cur.fetchone()
+    return mec["id_mecanico"] if mec else None
 
 
 # ── GET /api/citas/disponibilidad ─────────────────────────────────────────────
@@ -223,15 +255,14 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
 
     with get_db() as conn:
         vid = _resolve_or_create_vehiculo(conn, uid, body)
-        sid = _resolve_servicio(conn, body.servicio)   # [CIT-3] lanza 400 si no existe
+        sid, categoria = _resolve_servicio(conn, body.servicio)   # [CIT-3] lanza 400 si no existe
 
-        # [CIT-4] Mecánico
+        # [CIT-4][CIT-9] Mecánico: si no se eligió uno manualmente, se asigna
+        # automáticamente según la categoría del servicio.
         mid = body.id_mecanico
         cur = conn.cursor()
         if not mid:
-            cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
-            mec = cur.fetchone()
-            mid = mec["id_mecanico"] if mec else None
+            mid = _seleccionar_mecanico_automatico(conn, categoria)
 
         cur.execute(
             """INSERT INTO cita
@@ -357,8 +388,8 @@ def editar_cita(cita_id: int, body: CitaBody, authorization: str = Header(None))
             raise HTTPException(status_code=404, detail="Cita no encontrada o sin permiso")
 
         vid = _resolve_or_create_vehiculo(conn, uid if role != "admin" else cita_antigua["id_usuario"], body)
-        sid = _resolve_servicio(conn, body.servicio)
-        mid = body.id_mecanico
+        sid, categoria = _resolve_servicio(conn, body.servicio)
+        mid = body.id_mecanico or _seleccionar_mecanico_automatico(conn, categoria)
 
         cur.execute(
             """UPDATE cita 

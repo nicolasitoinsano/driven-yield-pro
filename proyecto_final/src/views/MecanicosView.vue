@@ -250,11 +250,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { API_BASE_URL } from '../config/api'
 
 const auth    = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const token   = computed(() => auth.token)
-const API     = 'http://localhost:8000'
+const API     = API_BASE_URL
 
 const mecanicos         = ref([])
 const loading           = ref(true)
@@ -293,7 +294,7 @@ async function cargarMecanicos() {
   loading.value = true
   error.value   = null
   try {
-    const r = await fetch(`${API}/api/mecanicos`)
+    const r = await fetch(`${API}/mecanicos`)
     const d = await r.json()
     mecanicos.value = d.mecanicos || []
   } catch {
@@ -308,7 +309,7 @@ async function verDetalle(m) {
   detalle.value         = null
   loadingDetalle.value  = true
   try {
-    const r = await fetch(`${API}/api/mecanicos/${m.id}/ingresos`, { headers: headers() })
+    const r = await fetch(`${API}/mecanicos/${m.id}/ingresos`, { headers: headers() })
     detalle.value = await r.json()
   } catch {
     detalle.value = null
@@ -338,7 +339,7 @@ async function guardarMecanico() {
   formError.value = ''
   try {
     const id  = editando.value ? mecanicoDetalle.value.id : null
-    const url = id ? `${API}/api/mecanicos/${id}` : `${API}/api/mecanicos`
+    const url = id ? `${API}/mecanicos/${id}` : `${API}/mecanicos`
     const r   = await fetch(url, { method: id ? 'PUT' : 'POST', headers: headers(), body: JSON.stringify(form.value) })
     if (!r.ok) { const e = await r.json(); formError.value = e.detail || 'Error al guardar'; return }
     modalForm.value = false
@@ -355,7 +356,7 @@ function confirmarEliminar(m) { mecanicoAEliminar.value = m }
 async function eliminarMecanico() {
   eliminando.value = true
   try {
-    await fetch(`${API}/api/mecanicos/${mecanicoAEliminar.value.id}`, { method: 'DELETE', headers: headers() })
+    await fetch(`${API}/mecanicos/${mecanicoAEliminar.value.id}`, { method: 'DELETE', headers: headers() })
     mecanicoAEliminar.value = null
     await cargarMecanicos()
   } catch {

@@ -6,7 +6,7 @@ import { API_BASE_URL, networkErrorMessage, parseApiResponse } from '../config/a
 const TOKEN_KEY = 'driven_yield_token'
 export const useAuthStore = defineStore('auth', () => {
   const user    = ref(null)
-  const token   = ref(sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || localStorage.getItem('driven yield_token') || null)
+  const token   = ref(localStorage.getItem(TOKEN_KEY) || null)
   const loading = ref(false)
   const error   = ref(null)
   const initialized = ref(false)
@@ -31,6 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
       ...(token.value ? { Authorization: `Bearer ${token.value}` } : {})
     }
   }
+
   async function init() {
     if (initialized.value && (user.value || !token.value)) return user.value
     if (initPromise) return initPromise
@@ -61,6 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     return initPromise
   }
+
   async function register(nombre, username, email, contrasena, telefono = '') {
     loading.value = true; error.value = null
     try {
@@ -77,6 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   async function login(username, contrasena) {
     loading.value = true; error.value = null
     try {
@@ -93,6 +96,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   async function loginAdmin(email, contrasena) {
     loading.value = true; error.value = null
     try {
@@ -109,6 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   async function updateProfile(datos) {
     loading.value = true; error.value = null
     try {
@@ -130,6 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   async function logout() {
     if (token.value) {
       try {
@@ -138,6 +144,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
     _clear()
   }
+
   async function forgotPassword(email) {
     loading.value = true; error.value = null
     try {
@@ -153,6 +160,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   async function resetPassword(resetToken, contrasena) {
     loading.value = true; error.value = null
     try {
@@ -168,23 +176,25 @@ export const useAuthStore = defineStore('auth', () => {
       return { ok: false, error: error.value }
     } finally { loading.value = false }
   }
+
   function _save(t, u) {
     token.value = t
     user.value  = normalizeUser(u)
     initialized.value = true
-    sessionStorage.setItem(TOKEN_KEY, t)
-    // Limpiar localStorage viejo si existe
-    localStorage.removeItem(TOKEN_KEY)
+    localStorage.setItem(TOKEN_KEY, t)
+    sessionStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('driven yield_token')
   }
+
   function _clear() {
     token.value = null
     user.value  = null
     initialized.value = true
-    sessionStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem('driven yield_token')
   }
+
   async function getUsers() {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/usuarios`, { headers: authHeaders() })
@@ -194,6 +204,7 @@ export const useAuthStore = defineStore('auth', () => {
       return []
     }
   }
+
   return {
     user, token, loading, error, initialized,
     isLoggedIn, isAdmin,

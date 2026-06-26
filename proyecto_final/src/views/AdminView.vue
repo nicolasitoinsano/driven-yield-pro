@@ -29,6 +29,9 @@
           <button :class="['nav-btn', { active: activeTab === 'clientes' }]" @click="setTab('clientes')">
             <span class="nav-icon">👥</span> CLIENTES
           </button>
+          <button :class="['nav-btn', { active: activeTab === 'servicios' }]" @click="setTab('servicios')">
+            <span class="nav-icon">🔧</span> SERVICIOS
+          </button>
         </nav>
 
         <div class="sidebar-bottom">
@@ -46,7 +49,7 @@
         
         <header class="topbar">
           <h1 class="page-title">
-            {{ activeTab === 'dashboard' ? 'PANEL CENTRAL' : activeTab === 'citas' ? 'GESTOR DE CITAS' : activeTab === 'calendario' ? 'CRONOGRAMA' : 'BASE DE CLIENTES' }}
+            {{ activeTab === 'dashboard' ? 'PANEL CENTRAL' : activeTab === 'citas' ? 'GESTOR DE CITAS' : activeTab === 'calendario' ? 'CRONOGRAMA' : activeTab === 'servicios' ? 'GESTOR DE SERVICIOS' : 'BASE DE CLIENTES' }}
           </h1>
           <div class="date-badge">{{ new Date().toLocaleDateString('es-CO') }}</div>
         </header>
@@ -211,17 +214,58 @@
                     <th>USUARIO</th>
                     <th>CONTACTO</th>
                     <th>ROL</th>
+                    <th>ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="u in clientes" :key="u.id" @click="openClienteModal(u.id)" class="clickable-row">
-                    <td><strong>{{ u.name || u.nombre }}</strong></td>
-                    <td class="text-muted">{{ u.username }}</td>
-                    <td>{{ u.email }} <br><span class="text-muted">{{ u.phone || u.telefono || 'Sin teléfono' }}</span></td>
-                    <td><span class="status-badge completada">CLIENTE</span></td>
+                  <tr v-for="u in clientes" :key="u.id" class="clickable-row">
+                    <td @click="openClienteModal(u.id)"><strong>{{ u.name || u.nombre }}</strong></td>
+                    <td @click="openClienteModal(u.id)" class="text-muted">{{ u.username }}</td>
+                    <td @click="openClienteModal(u.id)">{{ u.email }} <br><span class="text-muted">{{ u.phone || u.telefono || 'Sin teléfono' }}</span></td>
+                    <td @click="openClienteModal(u.id)"><span class="status-badge completada">CLIENTE</span></td>
+                    <td>
+                      <button class="btn btn-danger btn-sm" @click.stop="inactivarCliente(u.id, u.name || u.nombre)">
+                        INACTIVAR
+                      </button>
+                    </td>
                   </tr>
                   <tr v-if="clientes.length === 0">
-                    <td colspan="4" class="text-center py-4">No hay clientes registrados.</td>
+                    <td colspan="5" class="text-center py-4">No hay clientes registrados.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SERVICIOS TAB -->
+          <div v-else-if="activeTab === 'servicios'" key="servicios" class="tab-panel">
+            <div class="actions mb-3">
+              <button class="btn btn-primary" @click="abrirModalServicio()">+ AGREGAR SERVICIO</button>
+            </div>
+            <div class="table-container matte-card">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>NOMBRE</th>
+                    <th>CATEGORÍA</th>
+                    <th>PRECIO</th>
+                    <th>DURACIÓN</th>
+                    <th>ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="s in servicios" :key="s.id">
+                    <td><strong>{{ s.nombre }}</strong></td>
+                    <td class="text-muted">{{ s.categoria }}</td>
+                    <td>${{ s.precio }}</td>
+                    <td>{{ s.duracion }}</td>
+                    <td>
+                      <button class="btn btn-ghost" @click="abrirModalServicio(s)">Editar</button>
+                      <button class="btn btn-ghost text-red" @click="eliminarServicio(s.id)">Eliminar</button>
+                    </td>
+                  </tr>
+                  <tr v-if="servicios.length === 0">
+                    <td colspan="5" class="text-center py-4">No hay servicios registrados.</td>
                   </tr>
                 </tbody>
               </table>
@@ -323,6 +367,48 @@
       </div>
     </transition>
 
+    <!-- Servicio Modal -->
+    <transition name="modal-anim">
+      <div v-if="modalServicio.open" class="success-overlay" @click.self="modalServicio.open = false">
+        <div class="success-modal matte-card" style="max-width: 500px; text-align: left;">
+          <h2 class="sm-title">{{ modalServicio.editando ? 'EDITAR' : 'NUEVO' }} <span>SERVICIO</span></h2>
+          <p class="sm-sub">Define los datos del servicio ofrecido en el taller.</p>
+
+          <div class="form-group">
+            <label>NOMBRE *</label>
+            <input v-model="modalServicio.form.nombre" type="text" placeholder="Ej: Cambio de Aceite" />
+          </div>
+          <div class="form-group mt-3">
+            <label>CATEGORÍA *</label>
+            <input v-model="modalServicio.form.categoria" type="text" placeholder="Ej: Mantenimiento" />
+          </div>
+          <div class="form-group mt-3">
+            <label>PRECIO *</label>
+            <input v-model.number="modalServicio.form.precio" type="number" placeholder="0" />
+          </div>
+          <div class="form-group mt-3">
+            <label>DURACIÓN *</label>
+            <input v-model="modalServicio.form.duracion" type="text" placeholder="Ej: 30 min" />
+          </div>
+          <div class="form-group mt-3">
+            <label>DESCRIPCIÓN</label>
+            <textarea v-model="modalServicio.form.descripcion" rows="3" class="filter-select w-100" placeholder="Descripción del servicio..."></textarea>
+          </div>
+          <div class="form-group mt-3">
+            <label>IMAGEN (URL)</label>
+            <input v-model="modalServicio.form.imagen" type="url" placeholder="https://..." />
+          </div>
+
+          <div class="sm-actions" style="margin-top: 2rem;">
+            <button class="btn btn-ghost" @click="modalServicio.open = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarServicio">
+              {{ modalServicio.editando ? 'Guardar Cambios' : 'Agregar Servicio' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
   </main>
 </template>
 
@@ -353,6 +439,14 @@ const clientes = ref([])
 const mecanicosList = ref([])
 const citaSearch = ref('')
 const citaFilter = ref('todos')
+
+const servicios = ref([])
+const modalServicio = reactive({
+  open: false,
+  editando: false,
+  editId: null,
+  form: { nombre: '', categoria: '', precio: 0, duracion: '', descripcion: '', imagen: '' },
+})
 
 // Ingresos Filter state
 const ingresosFiltro = ref('mes')
@@ -437,6 +531,7 @@ onMounted(async () => {
   fetchStats()
   fetchClientes()
   fetchMecanicos()
+  cargarServicios()
 
   setTimeout(() => {
     document.querySelectorAll('.observe-me').forEach(el => el.classList.add('is-visible'))
@@ -509,6 +604,88 @@ async function fetchClientes() {
     }
   } catch (e) {
     console.error(e)
+  }
+}
+
+async function inactivarCliente(uid, nombre) {
+  if (!confirm(`¿Seguro que quieres inactivar a "${nombre}"? Ya no podrá iniciar sesión.`)) return
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/usuarios/${uid}`, {
+      method: 'DELETE',
+      headers: auth.authHeaders(),
+    })
+    if (res.ok) {
+      clientes.value = clientes.value.filter(c => c.id !== uid)
+    } else {
+      alert('No se pudo inactivar al cliente.')
+    }
+  } catch (e) {
+    console.error(e)
+    alert('Error de conexión al intentar inactivar al cliente.')
+  }
+}
+
+// ==================== SERVICIOS ====================
+async function cargarServicios() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/servicios`)
+    if (res.ok) {
+      servicios.value = await res.json()
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+function abrirModalServicio(serv = null) {
+  if (serv) {
+    modalServicio.editando = true
+    modalServicio.editId = serv.id
+    Object.assign(modalServicio.form, { ...serv })
+  } else {
+    modalServicio.editando = false
+    modalServicio.editId = null
+    Object.assign(modalServicio.form, { nombre: '', categoria: '', precio: 0, duracion: '', descripcion: '', imagen: '' })
+  }
+  modalServicio.open = true
+}
+
+async function guardarServicio() {
+  const { nombre, categoria, precio, duracion } = modalServicio.form
+  if (!nombre || !categoria || !precio || !duracion) { alert('Completa los campos obligatorios'); return }
+
+  const url = modalServicio.editando
+    ? `${API_BASE_URL}/servicios/${modalServicio.editId}`
+    : `${API_BASE_URL}/servicios`
+  const method = modalServicio.editando ? 'PUT' : 'POST'
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', ...auth.authHeaders() },
+      body: JSON.stringify(modalServicio.form),
+    })
+    if (!res.ok) { alert('Error al guardar el servicio'); return }
+    await cargarServicios()
+    modalServicio.open = false
+  } catch (e) {
+    console.error(e)
+    alert('Error al guardar el servicio')
+  }
+}
+
+async function eliminarServicio(id) {
+  if (!confirm('¿Eliminar este servicio?')) return
+  try {
+    const res = await fetch(`${API_BASE_URL}/servicios/${id}`, {
+      method: 'DELETE',
+      headers: auth.authHeaders(),
+    })
+    if (!res.ok) { alert('Error al eliminar el servicio'); return }
+    servicios.value = servicios.value.filter(s => s.id !== id)
+  } catch (e) {
+    console.error(e)
+    alert('Error al eliminar el servicio')
   }
 }
 

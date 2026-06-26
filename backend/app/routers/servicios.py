@@ -8,10 +8,24 @@
 import datetime as dt
 from decimal import Decimal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Header
+from pydantic import BaseModel
+
 from app.database import get_db
+from app.security import require_admin
 
 router = APIRouter(prefix="/api/servicios", tags=["servicios"])
+
+
+# ── Schema ────────────────────────────────────────────────────────────────────
+
+class ServicioBody(BaseModel):
+    nombre: str
+    categoria: str
+    precio: float
+    duracion: str
+    descripcion: str = ""
+    imagen: str = ""
 
 
 def _format_servicio(row: dict) -> dict:
@@ -38,6 +52,51 @@ def get_servicios():
         )
         rows = cur.fetchall()
     return [_format_servicio(r) for r in rows]
+
+@router.post("")
+def crear_servicio(body: ServicioBody, authorization: str = Header(None)):
+    require_admin(authorization)
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO servicio (nombre, categoria, precio, duracion, descripcion, imagen, activo) "
+            "VALUES (%s, %s, %s, %s, %s, %s, 1)",
+            (body.nombre, body.categoria, body.precio, body.duracion, body.descripcion, body.imagen)
+        )
+        conn.commit()
+        new_id = cur.lastrowid
+    return {"id": new_id, **body.dict()}
+
+
+@router.put("/{servicio_id}")
+def actualizar_servicio(servicio_id: int, body: ServicioBody, authorization: str = Header(None)):
+    require_admin(authorization)
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_servicio FROM servicio WHERE id_servicio = %s", (servicio_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Servicio no encontrado")
+        cur.execute(
+            "UPDATE servicio SET nombre=%s, categoria=%s, precio=%s, duracion=%s, "
+            "descripcion=%s, imagen=%s WHERE id_servicio=%s",
+            (body.nombre, body.categoria, body.precio, body.duracion, body.descripcion, body.imagen, servicio_id)
+        )
+        conn.commit()
+    return {"id": servicio_id, **body.dict()}
+
+
+@router.delete("/{servicio_id}")
+def eliminar_servicio(servicio_id: int, authorization: str = Header(None)):
+    require_admin(authorization)
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_servicio FROM servicio WHERE id_servicio = %s", (servicio_id,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Servicio no encontrado")
+        cur.execute("UPDATE servicio SET activo = 0 WHERE id_servicio = %s", (servicio_id,))
+        conn.commit()
+    return {"ok": True}
+
 
 @router.post("/seed")
 def seed_servicios():

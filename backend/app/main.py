@@ -1,5 +1,4 @@
-﻿
-import logging
+﻿import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +11,7 @@ from app.routers import auth, admin, citas, servicios, perfil, practica
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://localhost:5173,http://localhost:3000").split(",")
 
 app = FastAPI(
     title="driven yield Pro API",

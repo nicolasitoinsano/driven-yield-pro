@@ -1,28 +1,4 @@
 # app/routers/admin.py
-# ─────────────────────────────────────────────────────────────────────────────
-# CORRECCIONES vs versión anterior:
-#
-#  [ADM-1] admin/login: la conexión se cerraba antes de verify_password porque
-#          el `with get_db()` terminaba mientras `row` ya estaba en memoria.
-#          Aunque funcionaba, el patrón es frágil (e.g. si verify_password
-#          necesitara la conexión). Se restructura igual que auth/login.
-#
-#  [ADM-2] delete_cita_admin: se borraba el historial y luego se verificaba
-#          `rowcount` del DELETE de cita. Si la cita no existía, el DELETE de
-#          historial ya había corrido sin errores → rowcount=0 lanzaba 404 pero
-#          el historial ya estaba borrado. Se verifica existencia PRIMERO.
-#
-#  [ADM-3] get_all_citas: hora era un objeto datetime.timedelta en MySQL → al
-#          serializarse a JSON daba un error o un número de segundos. Se convierte
-#          a string formateado HH:MM explícitamente.
-#
-#  [ADM-4] require_admin se llama correctamente pasando el header como string
-#          (ver [SEC-2] en security.py).
-#
-#  [ADM-5] No existía endpoint GET /api/admin/stats para el panel de control.
-#          Se agrega con conteos útiles.
-# ─────────────────────────────────────────────────────────────────────────────
-
 from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 
@@ -45,10 +21,6 @@ class EstadoBody(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _format_hora(value) -> str:
-    """
-    [ADM-3] MySQL devuelve TIME como datetime.timedelta.
-    Convertimos a 'HH:MM' para JSON.
-    """
     if value is None:
         return ""
     import datetime
@@ -72,7 +44,6 @@ def _format_cita_row(row: dict) -> dict:
 
 @router.post("/login")
 def admin_login(body: AdminLoginBody):
-    # [ADM-1] Todo dentro del mismo bloque
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -150,7 +121,7 @@ def get_all_citas(authorization: str = Header(None)):
             ORDER BY c.fecha DESC, c.hora DESC
         """)
         rows = cur.fetchall()
-    return [_format_cita_row(r) for r in rows]   # [ADM-3] hora formateada
+    return [_format_cita_row(r) for r in rows]
 
 
 # ── GET /api/admin/usuarios ───────────────────────────────────────────────────
@@ -161,26 +132,33 @@ def get_usuarios(authorization: str = Header(None)):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
-            "SELECT id_usuario AS id, nombre, username, email, telefono FROM usuario ORDER BY nombre"
+            "SELECT id_usuario AS id, nombre, username, email, telefono FROM usuario WHERE activo = 1 ORDER BY nombre"
         )
         rows = cur.fetchall()
     for r in rows:
         r["role"] = "cliente"
     return rows
 
+
 @router.get("/usuarios/{uid}")
 def get_usuario_detalle(uid: int, authorization: str = Header(None)):
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id_usuario AS id, nombre, username, email, telefono FROM usuario WHERE id_usuario = %s", (uid,))
+        cur.execute(
+            "SELECT id_usuario AS id, nombre, username, email, telefono FROM usuario WHERE id_usuario = %s AND activo = 1",
+            (uid,)
+        )
         user_info = cur.fetchone()
         if not user_info:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-            
-        cur.execute("SELECT id_vehiculo AS id, marca, modelo, año, color, numero_de_placa AS placa FROM vehiculo WHERE id_usuario = %s", (uid,))
+
+        cur.execute(
+            "SELECT id_vehiculo AS id, marca, modelo, año, color, numero_de_placa AS placa FROM vehiculo WHERE id_usuario = %s",
+            (uid,)
+        )
         vehiculos = cur.fetchall()
-        
+
         cur.execute("""
             SELECT c.id_cita AS id, s.nombre AS servicio, c.fecha, c.hora, c.estado, c.monto,
                    CONCAT(v.marca, ' ', v.modelo) AS vehiculo, v.numero_de_placa AS placa
@@ -191,10 +169,10 @@ def get_usuario_detalle(uid: int, authorization: str = Header(None)):
             ORDER BY c.fecha DESC, c.hora DESC
         """, (uid,))
         citas = cur.fetchall()
-        
+
     for c in citas:
         c = _format_cita_row(c)
-        
+
     return {
         "info": user_info,
         "vehiculos": vehiculos,
@@ -202,8 +180,21 @@ def get_usuario_detalle(uid: int, authorization: str = Header(None)):
     }
 
 
+# ── DELETE /api/admin/usuarios/{uid} → soft delete ───────────────────────────
+
+@router.delete("/usuarios/{uid}")
+def delete_usuario(uid: int, authorization: str = Header(None)):
+    require_admin(authorization)
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id_usuario FROM usuario WHERE id_usuario = %s AND activo = 1", (uid,))
+        if not cur.fetchone():
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        cur.execute("UPDATE usuario SET activo = 0 WHERE id_usuario = %s", (uid,))
+    return {"ok": True}
+
+
 # ── GET /api/admin/stats ──────────────────────────────────────────────────────
-# [ADM-5] Nuevo — estadísticas para el dashboard
 
 @router.get("/stats")
 def get_stats(authorization: str = Header(None)):
@@ -211,7 +202,7 @@ def get_stats(authorization: str = Header(None)):
     with get_db() as conn:
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) AS total FROM usuario")
+        cur.execute("SELECT COUNT(*) AS total FROM usuario WHERE activo = 1")
         total_usuarios = cur.fetchone()["total"]
 
         cur.execute("SELECT COUNT(*) AS total FROM cita")
@@ -227,11 +218,11 @@ def get_stats(authorization: str = Header(None)):
         ingresos = float(cur.fetchone()["total"])
 
     return {
-        "usuarios":         total_usuarios,
-        "citas_total":      total_citas,
-        "citas_pendientes": citas_pendientes,
-        "citas_completadas":citas_completadas,
-        "ingresos":         ingresos,
+        "usuarios":          total_usuarios,
+        "citas_total":       total_citas,
+        "citas_pendientes":  citas_pendientes,
+        "citas_completadas": citas_completadas,
+        "ingresos":          ingresos,
     }
 
 
@@ -262,8 +253,6 @@ def delete_cita_admin(cita_id: int, authorization: str = Header(None)):
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
-
-        # [ADM-2] Verificar existencia ANTES de borrar el historial
         cur.execute("SELECT id_cita FROM cita WHERE id_cita = %s", (cita_id,))
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Cita no encontrada")

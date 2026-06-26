@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue'; // <-- Cambiado a Vue
+import vue from '@vitejs/plugin-vue';
 import fs from 'fs';
 import path from 'path';
 
@@ -10,12 +10,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+
   server: {
     host: 'localhost',
     port: 5173,
-    // https: {
-    //   key: fs.readFileSync('./certs/localhost.key'),
-    //   cert: fs.readFileSync('./certs/localhost.crt'),
-    // },
   },
-});
+})

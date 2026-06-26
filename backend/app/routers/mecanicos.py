@@ -1,17 +1,4 @@
 # app/routers/mecanicos.py
-# ─────────────────────────────────────────────────────────────────────────────
-# Router de Mecánicos - Driven Yield Pro
-#
-# Endpoints:
-#   GET    /api/mecanicos                  → Listar todos los mecánicos
-#   GET    /api/mecanicos/{id}             → Ver un mecánico
-#   GET    /api/mecanicos/{id}/ingresos    → Ingresos y citas de un mecánico 🔒
-#   GET    /api/mecanicos/ranking          → Ranking por ingresos generados  🔒
-#   POST   /api/mecanicos                  → Crear mecánico                  🔒 admin
-#   PUT    /api/mecanicos/{id}             → Actualizar mecánico              🔒 admin
-#   DELETE /api/mecanicos/{id}            → Eliminar mecánico                🔒 admin
-# ─────────────────────────────────────────────────────────────────────────────
-
 import datetime as dt
 from decimal import Decimal
 from typing import Optional
@@ -37,11 +24,9 @@ class MecanicoBody(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _fmt_decimal(val):
-    """Convierte Decimal → float para que JSON no explote."""
     return float(val) if isinstance(val, Decimal) else (val or 0.0)
 
 def _fmt_hora(value) -> str:
-    """Convierte timedelta de MySQL → 'HH:MM'."""
     if value is None:
         return ""
     if isinstance(value, dt.timedelta):
@@ -65,7 +50,6 @@ def _fmt_cita(row: dict) -> dict:
 
 @router.get("")
 def get_mecanicos():
-    """Lista todos los mecánicos con conteo de citas."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
@@ -82,6 +66,7 @@ def get_mecanicos():
                                   THEN c.monto ELSE 0 END), 0)         AS total_generado
             FROM mecanico m
             LEFT JOIN cita c ON c.id_mecanico = m.id_mecanico
+            WHERE m.activo = 1
             GROUP BY m.id_mecanico
             ORDER BY m.nombre
         """)
@@ -97,8 +82,7 @@ def get_mecanicos():
 
 @router.get("/ranking")
 def get_ranking(authorization: str = Header(None)):
-    """Ranking de mecánicos ordenado por ingresos generados. Requiere login."""
-    get_current_user(authorization)   # cualquier usuario autenticado
+    get_current_user(authorization)
 
     with get_db() as conn:
         cur = conn.cursor()
@@ -116,6 +100,7 @@ def get_ranking(authorization: str = Header(None)):
                                   THEN c.monto END), 0)                 AS promedio_por_cita
             FROM mecanico m
             LEFT JOIN cita c ON c.id_mecanico = m.id_mecanico
+            WHERE m.activo = 1
             GROUP BY m.id_mecanico
             ORDER BY total_generado DESC
         """)
@@ -124,15 +109,15 @@ def get_ranking(authorization: str = Header(None)):
     ranking = []
     for i, r in enumerate(rows, start=1):
         ranking.append({
-            "posicion":         i,
-            "id":               r["id"],
-            "nombre":           r["nombre"],
-            "especialidad":     r.get("especialidad"),
-            "disponible":       bool(r["disponible"]),
-            "total_citas":      r["total_citas"],
-            "citas_completadas":r["citas_completadas"],
-            "total_generado":   _fmt_decimal(r["total_generado"]),
-            "promedio_por_cita":_fmt_decimal(r["promedio_por_cita"]),
+            "posicion":          i,
+            "id":                r["id"],
+            "nombre":            r["nombre"],
+            "especialidad":      r.get("especialidad"),
+            "disponible":        bool(r["disponible"]),
+            "total_citas":       r["total_citas"],
+            "citas_completadas": r["citas_completadas"],
+            "total_generado":    _fmt_decimal(r["total_generado"]),
+            "promedio_por_cita": _fmt_decimal(r["promedio_por_cita"]),
         })
 
     return {
@@ -145,12 +130,11 @@ def get_ranking(authorization: str = Header(None)):
 
 @router.get("/{mecanico_id}")
 def get_mecanico(mecanico_id: int):
-    """Detalle de un mecánico."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
             SELECT id_mecanico AS id, nombre, especialidad, telefono, disponible
-            FROM mecanico WHERE id_mecanico = %s
+            FROM mecanico WHERE id_mecanico = %s AND activo = 1
         """, (mecanico_id,))
         row = cur.fetchone()
 
@@ -164,22 +148,19 @@ def get_mecanico(mecanico_id: int):
 
 @router.get("/{mecanico_id}/ingresos")
 def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
-    """Ingresos detallados y citas de un mecánico. Requiere login."""
     get_current_user(authorization)
 
     with get_db() as conn:
         cur = conn.cursor()
 
-        # Datos del mecánico
         cur.execute("""
             SELECT id_mecanico AS id, nombre, especialidad, disponible
-            FROM mecanico WHERE id_mecanico = %s
+            FROM mecanico WHERE id_mecanico = %s AND activo = 1
         """, (mecanico_id,))
         mec = cur.fetchone()
         if not mec:
             raise HTTPException(status_code=404, detail="Mecánico no encontrado")
 
-        # Resumen financiero
         cur.execute("""
             SELECT
                 COUNT(*)                                                   AS total_citas,
@@ -194,7 +175,6 @@ def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
         """, (mecanico_id,))
         resumen = cur.fetchone()
 
-        # Listado de citas con detalle
         cur.execute("""
             SELECT
                 c.id_cita                       AS id,
@@ -217,10 +197,10 @@ def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
 
     return {
         "mecanico": {
-            "id":          mec["id"],
-            "nombre":      mec["nombre"],
-            "especialidad":mec.get("especialidad"),
-            "disponible":  bool(mec["disponible"]),
+            "id":           mec["id"],
+            "nombre":       mec["nombre"],
+            "especialidad": mec.get("especialidad"),
+            "disponible":   bool(mec["disponible"]),
         },
         "resumen": {
             "total_citas":    resumen["total_citas"],
@@ -238,7 +218,6 @@ def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
 
 @router.post("")
 def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
-    """Crear un mecánico nuevo. Solo admin."""
     require_admin(authorization)
 
     if not body.nombre.strip():
@@ -247,8 +226,8 @@ def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO mecanico (nombre, especialidad, telefono, disponible)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO mecanico (nombre, especialidad, telefono, disponible, activo)
+            VALUES (%s, %s, %s, %s, 1)
         """, (
             body.nombre.strip(),
             body.especialidad,
@@ -274,12 +253,11 @@ def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
 
 @router.put("/{mecanico_id}")
 def actualizar_mecanico(mecanico_id: int, body: MecanicoBody, authorization: str = Header(None)):
-    """Actualizar datos de un mecánico. Solo admin."""
     require_admin(authorization)
 
     with get_db() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id_mecanico FROM mecanico WHERE id_mecanico = %s", (mecanico_id,))
+        cur.execute("SELECT id_mecanico FROM mecanico WHERE id_mecanico = %s AND activo = 1", (mecanico_id,))
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Mecánico no encontrado")
 
@@ -294,30 +272,22 @@ def actualizar_mecanico(mecanico_id: int, body: MecanicoBody, authorization: str
             1 if body.disponible else 0,
             mecanico_id,
         ))
-
+    
     return {"ok": True, "mensaje": "Mecánico actualizado ✅"}
 
 
-# ── DELETE /api/mecanicos/{id} ────────────────────────────────────────────────
+# ── DELETE /api/mecanicos/{id} → soft delete ──────────────────────────────────
 
 @router.delete("/{mecanico_id}")
 def eliminar_mecanico(mecanico_id: int, authorization: str = Header(None)):
-    """Eliminar un mecánico. Solo admin."""
     require_admin(authorization)
 
     with get_db() as conn:
         cur = conn.cursor()
-
-        # Verificar que existe
-        cur.execute("SELECT id_mecanico FROM mecanico WHERE id_mecanico = %s", (mecanico_id,))
+        cur.execute("SELECT id_mecanico FROM mecanico WHERE id_mecanico = %s AND activo = 1", (mecanico_id,))
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="Mecánico no encontrado")
 
-        # Desvincular citas (poner NULL en lugar de borrarlas)
-        cur.execute(
-            "UPDATE cita SET id_mecanico = NULL WHERE id_mecanico = %s",
-            (mecanico_id,)
-        )
-        cur.execute("DELETE FROM mecanico WHERE id_mecanico = %s", (mecanico_id,))
+        cur.execute("UPDATE mecanico SET activo = 0 WHERE id_mecanico = %s", (mecanico_id,))
 
-    return {"ok": True, "mensaje": "Mecánico eliminado ✅"}
+    return {"ok": True, "mensaje": "Mecánico desactivado ✅"}
