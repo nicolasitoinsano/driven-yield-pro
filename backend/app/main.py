@@ -1,12 +1,13 @@
-﻿import logging
+import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
+
+# Cargar variables antes de importar routers
 load_dotenv()
 
-from app.routers import auth, admin, citas, servicios, perfil, practica
+from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +22,15 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=[
+        "http://localhost:5173",
+        "https://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://127.0.0.1:5173",
+        "http://localhost:3000",
+        "https://localhost:3000",
+        "null"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

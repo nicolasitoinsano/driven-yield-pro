@@ -81,15 +81,15 @@
       </div>
       
       <div class="reviews-slider">
-        <button class="slider-btn" @click="prevReview">←</button>
+        <button class="slider-btn" @click="prevReview"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
         <transition name="fade" mode="out-in">
           <div :key="activeReview" class="review-content matte-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
+            <div class="stars"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
             <p class="review-text">"{{ reviews[activeReview].text }}"</p>
             <p class="review-author">- {{ reviews[activeReview].author }}</p>
           </div>
         </transition>
-        <button class="slider-btn" @click="nextReview">→</button>
+        <button class="slider-btn" @click="nextReview"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
       </div>
       <div class="review-dots">
         <span v-for="(r, i) in reviews" :key="i" class="dot" :class="{ active: i === activeReview }" @click="activeReview = i"></span>
@@ -125,9 +125,9 @@
         </div>
         <div class="footer-contact">
           <h4>Terminal de Contacto</h4>
-          <p><span class="fc-icon">⌖</span> Av. Principal 123, Sector 7</p>
-          <p><span class="fc-icon">☏</span> +1 234 567 890</p>
-          <p><span class="fc-icon">✉</span> sys@drivenyield.com</p>
+          <p><span class="fc-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> Av. Principal 123, Sector 7</p>
+          <p><span class="fc-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> +1 234 567 890</p>
+          <p><span class="fc-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> sys@drivenyield.com</p>
         </div>
       </div>
       <div class="footer-bottom">

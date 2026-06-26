@@ -1,4 +1,4 @@
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://localhost:8000/api').replace(/\/$/, '')
 
 export async function parseApiResponse(res, fallbackMessage = 'Error en la solicitud') {
   let data = null

@@ -31,7 +31,7 @@
             >
               <div class="step-bubble">
                 <transition name="bubble-swap" mode="out-in">
-                  <span v-if="currentStep > idx + 1" key="check" class="check-mark">✓</span>
+                  <span v-if="currentStep > idx + 1" key="check" class="check-mark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
                   <span v-else key="num">0{{ idx + 1 }}</span>
                 </transition>
               </div>
@@ -83,7 +83,7 @@
                   :style="`animation-delay: ${i * 0.05}s`"
                   @click="form.servicio = s.name"
                 >
-                  <div class="sc-icon">{{ s.icon }}</div>
+                  <div class="sc-icon" v-html="s.icon"></div>
                   <div class="sc-info">
                     <span class="sc-name">{{ s.name }}</span>
                     <span class="sc-desc">{{ s.desc }}</span>
@@ -181,7 +181,7 @@
                   <label>MECÁNICO ASIGNADO</label>
                   <select v-model="form.id_mecanico">
                     <option value="">Asignación Automática</option>
-                    <option v-for="m in mecanicos" :key="m.id_mecanico" :value="m.id_mecanico">{{ m.nombre }} - {{ m.especialidad }}</option>
+                    <option v-for="m in filteredMecanicos" :key="m.id_mecanico" :value="m.id_mecanico">{{ m.nombre }} - {{ m.especialidad || 'General' }}</option>
                   </select>
                 </div>
 
@@ -254,10 +254,10 @@
           <!-- Actions -->
           <div class="step-actions">
             <button class="btn btn-ghost" @click="currentStep--" :disabled="currentStep === 1">
-              ← Retroceder
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Retroceder
             </button>
             <button v-if="currentStep < 4" class="btn btn-primary" @click="nextStep">
-              Siguiente Fase →
+              Siguiente Fase <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
             <button v-else class="btn btn-primary btn-confirm" @click="submitForm" :disabled="citasStore.loading">
               {{ citasStore.loading ? 'Procesando...' : 'Agendar Cita' }}
@@ -273,7 +273,7 @@
       <div v-if="showSuccess" class="success-overlay" @click.self="showSuccess = false">
         <div class="success-modal matte-card">
           <div class="success-ring">
-            ✓
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
           </div>
           <h2 class="sm-title">SECUENCIA <span>COMPLETADA</span></h2>
           <p class="sm-sub">Su solicitud ha sido procesada e ingresada en el sistema.</p>
@@ -341,11 +341,12 @@ onMounted(async () => {
     if(res.ok) {
       const data = await res.json()
       serviciosData.value = data.map(s => ({
-        icon: '🔧',
+        icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
         name: s.nombre,
         precio: s.precio.toLocaleString('es-CO'),
         desc: s.descripcion,
-        precioRaw: s.precio
+        precioRaw: s.precio,
+        categoria: s.categoria
       }))
       
       const qService = route.query.servicioId
@@ -402,6 +403,24 @@ const serviciosData = ref([])
 const selectedService = computed(() => serviciosData.value.find(s => s.name === form.servicio))
 const horas = ref([])
 const mecanicos = ref([])
+
+const categoryToSpecialty = {
+  'Mantenimiento': 'Mecánica General',
+  'Suspensión': 'Frenos y Suspensión',
+  'Frenos': 'Frenos y Suspensión',
+  'Diagnóstico': 'Electrónica Automotriz',
+  'Eléctrico': 'Electrónica Automotriz',
+  'Confort': 'Aire Acondicionado',
+  'Transmisión': 'Transmisiones',
+  'Motor': 'Motor y Afinación'
+}
+
+const filteredMecanicos = computed(() => {
+  if (!selectedService.value || !selectedService.value.categoria) return mecanicos.value;
+  const targetSpec = categoryToSpecialty[selectedService.value.categoria];
+  const filtered = mecanicos.value.filter(m => m.especialidad === targetSpec || !m.especialidad || m.especialidad === 'Mecánica General');
+  return filtered.length > 0 ? filtered : mecanicos.value;
+})
 const userVehicles = ref([])
 const selectedVehicleId = ref('manual')
 const tzOffset = (new Date()).getTimezoneOffset() * 60000

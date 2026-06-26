@@ -28,16 +28,16 @@
       <aside class="sidebar observe-me" style="transition-delay: 0.1s">
         <nav class="sidebar-nav matte-card">
           <button :class="['nav-btn', { active: activeTab === 'garage' }]" @click="activeTab = 'garage'">
-            <span class="nav-icon">🚗</span> GARAGE Y VEHÍCULOS
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></span> GARAGE Y VEHÍCULOS
           </button>
           <button :class="['nav-btn', { active: activeTab === 'citas' }]" @click="activeTab = 'citas'">
-            <span class="nav-icon">⏱️</span> HISTORIAL DE SERVICIOS
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> HISTORIAL DE SERVICIOS
           </button>
           <button :class="['nav-btn', { active: activeTab === 'info' }]" @click="activeTab = 'info'">
-            <span class="nav-icon">🔒</span> CREDENCIALES
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> CREDENCIALES
           </button>
           <button class="nav-btn text-red" @click="handleLogout">
-            <span class="nav-icon">⏏️</span> CERRAR SESIÓN
+            <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg></span> CERRAR SESIÓN
           </button>
         </nav>
 
@@ -107,10 +107,10 @@
             </transition>
 
             <div v-if="vehiculos.length === 0" class="empty-state matte-card">
-              <span class="empty-icon">∅</span>
+              <span class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="15" y1="9" y2="15"/><line x1="15" x2="9" y1="9" y2="15"/></svg></span>
               <h3>Sin vehículos registrados</h3>
               <p>Tu expediente está vacío. Los vehículos se registrarán automáticamente al agendar tu primer servicio.</p>
-              <router-link to="/agendar" class="btn btn-primary mt-4">AGENDAR SERVICIO →</router-link>
+              <router-link to="/agendar" class="btn btn-primary mt-4">AGENDAR SERVICIO <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></router-link>
             </div>
 
             <div v-else class="vehicles-grid">
@@ -141,7 +141,7 @@
             </div>
 
             <div v-if="citas.length === 0" class="empty-state matte-card">
-              <span class="empty-icon">∅</span>
+              <span class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="15" y1="9" y2="15"/><line x1="15" x2="9" y1="9" y2="15"/></svg></span>
               <h3>Sin historial de servicios</h3>
               <p>Aún no se han registrado intervenciones en tus vehículos.</p>
             </div>
@@ -197,7 +197,7 @@
               <transition name="fade">
                 <div v-if="showPasswordChange" class="password-change-box" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(230,0,35,0.3); border-radius: 8px;">
                   <h4 style="color: white; margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 1.2rem;">🔒</span> CAMBIO DE CREDENCIALES
+                    <span style="display:inline-flex; align-items:center; margin-right: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> CAMBIO DE CREDENCIALES
                   </h4>
                   <p class="form-note">Por seguridad, ingrese su clave actual para habilitar el cambio:</p>
                   <div class="form-group">
@@ -220,7 +220,7 @@
                 </button>
                 
                 <button v-if="!showPasswordChange" class="btn btn-ghost" style="border: 1px dashed rgba(255,255,255,0.2); width: 100%; transition: all 0.3s;" @click="showPasswordChange = true">
-                  <span style="font-size: 1.2rem; margin-right: 8px;">🔒</span> MODIFICAR CONTRASEÑA DE ACCESO
+                  <span style="display:inline-flex; align-items:center; margin-right: 8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> MODIFICAR CONTRASEÑA DE ACCESO
                 </button>
               </div>
             </div>

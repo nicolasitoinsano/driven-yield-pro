@@ -1,28 +1,22 @@
 # app/database.py
 # ─────────────────────────────────────────────────────────────────────────────
-# Conexión a MySQL con PyMySQL.
-# Configuración desde variables de entorno.
+# Conexión a PostgreSQL (Supabase) con psycopg2.
 # ─────────────────────────────────────────────────────────────────────────────
 import os
-import pymysql
-import pymysql.cursors
+import psycopg2
+import psycopg2.extras
 from contextlib import contextmanager
 
-DB_CONFIG = {
-    "host":            os.getenv("DB_HOST", "localhost"),
-    "port":            int(os.getenv("DB_PORT", "3306")),
-    "user":            os.getenv("DB_USER", "root"),
-    "password":        os.getenv("DB_PASSWORD", ""),
-    "database":        os.getenv("DB_NAME", "driven_yield1"),
-    "charset":         "utf8mb4",
-    "cursorclass":     pymysql.cursors.DictCursor,
-    "autocommit":      True,
-    "connect_timeout": 10,
-}
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 
-
-def get_connection() -> pymysql.connections.Connection:
-    return pymysql.connect(**DB_CONFIG)
+def get_connection():
+    SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+    if not SUPABASE_URL:
+        raise ValueError("La variable SUPABASE_URL no está configurada.")
+    
+    conn = psycopg2.connect(SUPABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    conn.autocommit = True
+    return conn
 
 
 @contextmanager

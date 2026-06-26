@@ -181,10 +181,10 @@ def register(body: RegisterBody):
 
         cur.execute(
             """INSERT INTO usuario (nombre, username, email, telefono, contrasena)
-               VALUES (%s, %s, %s, %s, %s)""",
+               VALUES (%s, %s, %s, %s, %s) RETURNING id_usuario""",
             (body.nombre, body.username, body.email, body.telefono, hashed)
         )
-        new_id = cur.lastrowid   # [AUTH-1] leído ANTES de cerrar la conexión
+        new_id = cur.fetchone()["id_usuario"]
 
         cur.execute("SELECT * FROM usuario WHERE id_usuario = %s", (new_id,))
         row = cur.fetchone()

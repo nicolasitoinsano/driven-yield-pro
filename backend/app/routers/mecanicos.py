@@ -60,8 +60,8 @@ def get_mecanicos():
                 m.telefono,
                 m.disponible,
                 COUNT(c.id_cita)                                        AS total_citas,
-                SUM(c.estado = 'completada')                            AS citas_completadas,
-                SUM(c.estado = 'pendiente')                             AS citas_pendientes,
+                COALESCE(SUM(CASE WHEN c.estado = 'completada' THEN 1 ELSE 0 END), 0) AS citas_completadas,
+                COALESCE(SUM(CASE WHEN c.estado = 'pendiente' THEN 1 ELSE 0 END), 0)  AS citas_pendientes,
                 COALESCE(SUM(CASE WHEN c.estado = 'completada'
                                   THEN c.monto ELSE 0 END), 0)         AS total_generado
             FROM mecanico m
@@ -93,7 +93,7 @@ def get_ranking(authorization: str = Header(None)):
                 m.especialidad,
                 m.disponible,
                 COUNT(c.id_cita)                                         AS total_citas,
-                COALESCE(SUM(c.estado = 'completada'), 0)                AS citas_completadas,
+                COALESCE(SUM(CASE WHEN c.estado = 'completada' THEN 1 ELSE 0 END), 0) AS citas_completadas,
                 COALESCE(SUM(CASE WHEN c.estado = 'completada'
                                   THEN c.monto ELSE 0 END), 0)          AS total_generado,
                 COALESCE(AVG(CASE WHEN c.estado = 'completada'
@@ -164,9 +164,9 @@ def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
         cur.execute("""
             SELECT
                 COUNT(*)                                                   AS total_citas,
-                COALESCE(SUM(estado = 'completada'), 0)                   AS completadas,
-                COALESCE(SUM(estado = 'pendiente'), 0)                    AS pendientes,
-                COALESCE(SUM(estado = 'cancelada'), 0)                    AS canceladas,
+                COALESCE(SUM(CASE WHEN estado = 'completada' THEN 1 ELSE 0 END), 0) AS completadas,
+                COALESCE(SUM(CASE WHEN estado = 'pendiente' THEN 1 ELSE 0 END), 0)  AS pendientes,
+                COALESCE(SUM(CASE WHEN estado = 'cancelada' THEN 1 ELSE 0 END), 0)  AS canceladas,
                 COALESCE(SUM(CASE WHEN estado='completada'
                                   THEN monto ELSE 0 END), 0)             AS total_generado,
                 COALESCE(AVG(CASE WHEN estado='completada'
@@ -226,15 +226,15 @@ def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
-            INSERT INTO mecanico (nombre, especialidad, telefono, disponible, activo)
-            VALUES (%s, %s, %s, %s, 1)
+            INSERT INTO mecanico (nombre, especialidad, telefono, disponible)
+            VALUES (%s, %s, %s, %s) RETURNING id_mecanico
         """, (
             body.nombre.strip(),
             body.especialidad,
             body.telefono,
             1 if body.disponible else 0,
         ))
-        new_id = cur.lastrowid
+        new_id = cur.fetchone()["id_mecanico"]
 
     return {
         "ok":      True,

@@ -123,7 +123,7 @@ def _resolve_or_create_vehiculo(conn, uid: int, body: CitaBody) -> int:
     # Crear vehículo nuevo
     cur.execute(
         """INSERT INTO vehiculo (marca, modelo, año, color, numero_de_placa, id_usuario)
-           VALUES (%s, %s, %s, %s, %s, %s)""",
+           VALUES (%s, %s, %s, %s, %s, %s) RETURNING id_vehiculo""",
         (
             marca,
             modelo,
@@ -133,7 +133,7 @@ def _resolve_or_create_vehiculo(conn, uid: int, body: CitaBody) -> int:
             uid,
         )
     )
-    return cur.lastrowid
+    return cur.fetchone()["id_vehiculo"]
 
 
 def _resolve_servicio(conn, nombre: str):
@@ -173,7 +173,7 @@ def _seleccionar_mecanico_automatico(conn, categoria: str):
             return mec["id_mecanico"]
 
     # Fallback: ningún mecánico con esa especialidad disponible -> cualquiera disponible
-    cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
+    cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RANDOM() LIMIT 1")
     mec = cur.fetchone()
     return mec["id_mecanico"] if mec else None
 
@@ -267,10 +267,10 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
         cur.execute(
             """INSERT INTO cita
                (fecha, hora, notas, monto, estado, id_usuario, id_vehiculo, id_servicio, id_mecanico)
-               VALUES (%s, %s, %s, %s, 'pendiente', %s, %s, %s, %s)""",
+               VALUES (%s, %s, %s, %s, 'pendiente', %s, %s, %s, %s) RETURNING id_cita""",
             (body.fecha, body.hora, body.notas, body.monto, uid, vid, sid, mid)
         )
-        new_id = cur.lastrowid
+        new_id = cur.fetchone()["id_cita"]
 
         # Leer la cita recién creada con JOINs
         cur.execute("""

@@ -19,7 +19,7 @@
     <section class="filters-section observe-me" style="transition-delay: 0.2s">
       <div class="filters-inner matte-card">
         <div class="search-wrap">
-          <span class="search-icon">⌕</span>
+          <span class="search-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span>
           <input v-model="search" type="text" placeholder="Ingresar parámetro de búsqueda..." />
         </div>
 
@@ -59,24 +59,16 @@
           <!-- Cuerpo -->
           <div class="srv-body">
             <h3 class="srv-name">{{ s.name }}</h3>
-            <p class="srv-desc">{{ s.desc }}</p>
-
-            <ul class="srv-features">
-              <li v-for="feat in s.features" :key="feat">
-                <span class="feat-bullet"></span>
-                {{ feat }}
-              </li>
-            </ul>
 
             <div class="srv-footer">
               <div class="srv-meta">
                 <div class="srv-time">
-                  <span class="time-icon">⏱</span>
+                  <span class="time-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span>
                   {{ s.tiempo }}
                 </div>
               </div>
               <router-link :to="{ path: '/agendar', query: { servicioId: s.name } }" class="srv-btn">
-                Seleccionar <span class="arr">→</span>
+                Seleccionar <span class="arr"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span>
               </router-link>
             </div>
           </div>

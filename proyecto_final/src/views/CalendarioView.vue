@@ -66,7 +66,7 @@ onMounted(() => citasStore.fetchCitas())
 .stat-num   { font-size: 1.8rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: 12px; color: rgba(255,255,255,0.5); }
 
-/* ✅ Corregido: CSS válido con background y colores correctos */
+/* <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> Corregido: CSS válido con background y colores correctos */
 .stat-dot { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
 .dot-pendiente  { background: #f59e0b; }
 .dot-confirmada { background: #534AB7; }

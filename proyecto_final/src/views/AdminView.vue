@@ -18,19 +18,19 @@
 
         <nav class="sidebar-nav">
           <button :class="['nav-btn', { active: activeTab === 'dashboard' }]" @click="setTab('dashboard')">
-            <span class="nav-icon">📊</span> DASHBOARD
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> DASHBOARD
           </button>
           <button :class="['nav-btn', { active: activeTab === 'citas' }]" @click="setTab('citas')">
-            <span class="nav-icon">📋</span> ÓRDENES ({{ citas.filter(c=>c.estado==='pendiente').length }})
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> ÓRDENES ({{ citas.filter(c=>c.estado==='pendiente').length }})
           </button>
           <button :class="['nav-btn', { active: activeTab === 'calendario' }]" @click="setTab('calendario')">
-            <span class="nav-icon">🗓️</span> CALENDARIO
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>️</span> CALENDARIO
           </button>
           <button :class="['nav-btn', { active: activeTab === 'clientes' }]" @click="setTab('clientes')">
-            <span class="nav-icon">👥</span> CLIENTES
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> CLIENTES
           </button>
           <button :class="['nav-btn', { active: activeTab === 'servicios' }]" @click="setTab('servicios')">
-            <span class="nav-icon">🔧</span> SERVICIOS
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> SERVICIOS
           </button>
         </nav>
 
@@ -39,7 +39,7 @@
             <span class="pulse-dot"></span> SERVIDOR CONECTADO
           </div>
           <button class="nav-btn text-red mt-2" @click="handleLogout">
-            <span class="nav-icon">⏏️</span> SALIR
+            <span class="nav-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>️</span> SALIR
           </button>
         </div>
       </aside>
@@ -96,7 +96,7 @@
                     <option value="anio">Este Año</option>
                     <option value="historico">Histórico Total</option>
                   </select>
-                  <button class="btn btn-primary" @click="downloadPDF">↓ EXPORTAR PDF</button>
+                  <button class="btn btn-primary" @click="downloadPDF"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> EXPORTAR PDF</button>
                 </div>
               </div>
 
@@ -183,9 +183,9 @@
                     <td><span :class="['status-badge', c.estado]">{{ c.estado }}</span></td>
                     <td @click.stop>
                       <div class="actions">
-                        <button class="btn-action act-ok" title="Confirmar" @click="updateEstado(c.id, 'confirmada')">✓</button>
+                        <button class="btn-action act-ok" title="Confirmar" @click="updateEstado(c.id, 'confirmada')"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
                         <button class="btn-action act-done" title="Completar" @click="updateEstado(c.id, 'completada')">◎</button>
-                        <button class="btn-action act-cancel" title="Cancelar" @click="updateEstado(c.id, 'cancelada')">✕</button>
+                        <button class="btn-action act-cancel" title="Cancelar" @click="updateEstado(c.id, 'cancelada')"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
                       </div>
                     </td>
                   </tr>

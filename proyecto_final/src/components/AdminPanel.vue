@@ -20,7 +20,7 @@
         <div class="stat-card">
           <div class="stat-top">
             <div class="stat-number white">{{ citas.length }}</div>
-            <div class="stat-icon">📅</div>
+            <div class="stat-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           </div>
           <div class="stat-label">TOTAL CITAS</div>
           <div class="stat-bar" style="background:rgba(255,255,255,.15)"></div>
@@ -28,7 +28,7 @@
         <div class="stat-card">
           <div class="stat-top">
             <div class="stat-number yellow">{{ citasPor('pendiente') }}</div>
-            <div class="stat-icon">🕐</div>
+            <div class="stat-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           </div>
           <div class="stat-label">PENDIENTES</div>
           <div class="stat-bar" style="background:rgba(245,158,11,.3)"></div>
@@ -36,7 +36,7 @@
         <div class="stat-card">
           <div class="stat-top">
             <div class="stat-number blue">{{ citasPor('confirmada') }}</div>
-            <div class="stat-icon">✔</div>
+            <div class="stat-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           </div>
           <div class="stat-label">CONFIRMADAS</div>
           <div class="stat-bar" style="background:rgba(59,130,246,.3)"></div>
@@ -44,7 +44,7 @@
         <div class="stat-card">
           <div class="stat-top">
             <div class="stat-number green">{{ citasPor('completada') }}</div>
-            <div class="stat-icon">✔✔</div>
+            <div class="stat-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           </div>
           <div class="stat-label">COMPLETADAS</div>
           <div class="stat-bar" style="background:rgba(16,185,129,.3)"></div>
@@ -52,7 +52,7 @@
         <div class="stat-card">
           <div class="stat-top">
             <div class="stat-number red">{{ citasPor('cancelada') }}</div>
-            <div class="stat-icon">✕</div>
+            <div class="stat-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           </div>
           <div class="stat-label">CANCELADAS</div>
           <div class="stat-bar" style="background:rgba(220,38,38,.3)"></div>
@@ -80,14 +80,14 @@
             placeholder="Buscar cliente o servicio..."
           />
           <button class="btn-red" @click="abrirModalCita()">+ NUEVA CITA</button>
-          <button class="btn-ghost" @click="exportarCSV">⬇ EXPORTAR</button>
+          <button class="btn-ghost" @click="exportarCSV"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> EXPORTAR</button>
         </div>
       </div>
 
       <!-- Tabla -->
       <div class="table-container">
         <div v-if="!citasFiltradas.length" class="empty-state">
-          <span class="empty-icon">🗓️</span>
+          <span class="empty-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>️</span>
           <h3>Sin citas</h3>
           <p>Aún no hay citas registradas en el sistema</p>
           <button class="btn-red" @click="abrirModalCita()">+ Crear primera cita</button>
@@ -127,8 +127,8 @@
                     <option value="completada">Completada</option>
                     <option value="cancelada">Cancelada</option>
                   </select>
-                  <button class="action-btn" @click="abrirModalCita(cita)">✏️</button>
-                  <button class="action-btn" @click="eliminarCita(cita.id)">🗑️</button>
+                  <button class="action-btn" @click="abrirModalCita(cita)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>️</button>
+                  <button class="action-btn" @click="eliminarCita(cita.id)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>️</button>
                 </div>
               </td>
             </tr>
@@ -142,7 +142,7 @@
       <!-- Stats ventas -->
       <div class="ventas-stats">
         <div class="venta-stat-card rojo">
-          <div class="vs-icon">💵</div>
+          <div class="vs-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           <div class="vs-label">INGRESOS MES</div>
           <div class="vs-value">{{ fmtCOP(ingresosMes) }}</div>
           <div :class="['vs-change', cambioPct >= 0 ? 'pos' : 'neg']">
@@ -150,19 +150,19 @@
           </div>
         </div>
         <div class="venta-stat-card verde">
-          <div class="vs-icon">🔧</div>
+          <div class="vs-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           <div class="vs-label">SERVICIOS MES</div>
           <div class="vs-value">{{ ventasMes.length }}</div>
           <div class="vs-sub">servicios completados</div>
         </div>
         <div class="venta-stat-card azul">
-          <div class="vs-icon">🎯</div>
+          <div class="vs-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           <div class="vs-label">TICKET PROMEDIO</div>
           <div class="vs-value">{{ fmtCOP(ticketPromedio) }}</div>
           <div class="vs-sub">por servicio</div>
         </div>
         <div class="venta-stat-card amarillo">
-          <div class="vs-icon">⭐</div>
+          <div class="vs-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></div>
           <div class="vs-label">TOP SERVICIO</div>
           <div class="vs-value" style="font-size:1.3rem">{{ topServicio }}</div>
           <div class="vs-sub">más solicitado</div>
@@ -226,7 +226,7 @@
               <span class="qs-total-label">Total a cobrar</span>
               <span class="qs-total-value">{{ fmtCOP(qsMonto || 0) }}</span>
             </div>
-            <button class="btn-red btn-full" @click="registrarVenta">✓ REGISTRAR VENTA</button>
+            <button class="btn-red btn-full" @click="registrarVenta"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> REGISTRAR VENTA</button>
           </div>
         </div>
       </div>
@@ -333,7 +333,7 @@
         </div>
         <div class="search-and-add">
           <div class="search-box">
-            <span>🔍</span>
+            <span><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span>
             <input v-model="searchServicio" type="text" placeholder="Buscar servicio..." />
           </div>
           <button class="btn-red" @click="abrirModalServicio()">+ AGREGAR SERVICIO</button>
@@ -343,7 +343,7 @@
       <div class="result-count">{{ serviciosFiltrados.length }} servicios encontrados</div>
 
       <div v-if="!serviciosFiltrados.length" class="empty-state">
-        <span class="empty-icon">🔧</span>
+        <span class="empty-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span>
         <h3>Sin servicios</h3>
         <p>No hay servicios que coincidan</p>
       </div>
@@ -364,7 +364,7 @@
           </div>
           <div class="card-footer">
             <span class="card-price">${{ s.precio }}</span>
-            <span class="card-time">🕐 {{ s.duracion }}</span>
+            <span class="card-time"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> {{ s.duracion }}</span>
           </div>
           <div class="card-actions">
             <button class="btn btn-blue" @click="abrirModalServicio(s)">Editar</button>
@@ -380,7 +380,7 @@
       <div v-if="modalCita.open" class="modal open">
         <div class="modal-header">
           <h2>{{ modalCita.editando ? 'EDITAR' : 'NUEVA' }} <span>CITA</span></h2>
-          <button class="modal-close" @click="modalCita.open = false">✕</button>
+          <button class="modal-close" @click="modalCita.open = false"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -431,7 +431,7 @@
       <div v-if="modalServicio.open" class="modal open">
         <div class="modal-header">
           <h2>{{ modalServicio.editando ? 'EDITAR' : 'NUEVO' }} <span>SERVICIO</span></h2>
-          <button class="modal-close" @click="modalServicio.open = false">✕</button>
+          <button class="modal-close" @click="modalServicio.open = false"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -440,9 +440,16 @@
           </div>
           <div class="form-group">
             <label>CATEGORÍA <span class="required">*</span></label>
-            <select v-model="modalServicio.form.categoria">
-              <option value="">Seleccionar categoría…</option>
-              <option v-for="c in categorias.filter(x => x !== 'todos')" :key="c">{{ c }}</option>
+            <select v-model="modalServicio.form.categoria" class="filter-select w-100" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 0.8rem 1rem; color: white; font-family: 'Outfit', sans-serif; border-radius: 4px; outline: none; transition: border-color 0.3s;">
+              <option value="" style="background: #1a1a1a; color: white;">Seleccionar categoría…</option>
+              <option value="Mantenimiento" style="background: #1a1a1a; color: white;">Mantenimiento</option>
+              <option value="Suspensión" style="background: #1a1a1a; color: white;">Suspensión</option>
+              <option value="Frenos" style="background: #1a1a1a; color: white;">Frenos</option>
+              <option value="Diagnóstico" style="background: #1a1a1a; color: white;">Diagnóstico</option>
+              <option value="Eléctrico" style="background: #1a1a1a; color: white;">Eléctrico</option>
+              <option value="Confort" style="background: #1a1a1a; color: white;">Confort</option>
+              <option value="Transmisión" style="background: #1a1a1a; color: white;">Transmisión</option>
+              <option value="Motor" style="background: #1a1a1a; color: white;">Motor</option>
             </select>
           </div>
           <div class="form-row">
@@ -478,9 +485,9 @@ import { ref, computed, reactive } from 'vue'
 
 // ==================== TABS ====================
 const tabs = [
-  { id: 'citas', label: 'Citas', icon: '📅' },
-  { id: 'ventas', label: 'Ventas', icon: '💰' },
-  { id: 'servicios', label: 'Servicios', icon: '🔧' },
+  { id: 'citas', label: 'Citas', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>' },
+  { id: 'ventas', label: 'Ventas', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>' },
+  { id: 'servicios', label: 'Servicios', icon: '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>' },
 ]
 const activeTab = ref('citas')
 

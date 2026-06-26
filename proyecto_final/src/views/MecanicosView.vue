@@ -115,8 +115,8 @@
                 <td class="text-green fw-bold">{{ formatPeso(m.total_generado) }}</td>
                 <td v-if="isAdmin" @click.stop>
                   <div class="actions">
-                    <button class="btn-action act-ok" title="Editar" @click="abrirModalEditar(m)">✎</button>
-                    <button class="btn-action act-cancel" title="Eliminar" @click="confirmarEliminar(m)">✕</button>
+                    <button class="btn-action act-ok" title="Editar" @click="abrirModalEditar(m)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
+                    <button class="btn-action act-cancel" title="Eliminar" @click="confirmarEliminar(m)"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></button>
                   </div>
                 </td>
               </tr>
@@ -200,7 +200,15 @@
           </div>
           <div class="form-group mt-3">
             <label>ESPECIALIDAD</label>
-            <input v-model="form.especialidad" type="text" placeholder="Ej: Electrónica Automotriz" />
+            <select v-model="form.especialidad" class="filter-select w-100">
+              <option value="">Seleccionar especialidad...</option>
+              <option value="Mecánica General">Mecánica General</option>
+              <option value="Electrónica Automotriz">Electrónica Automotriz</option>
+              <option value="Frenos y Suspensión">Frenos y Suspensión</option>
+              <option value="Transmisiones">Transmisiones</option>
+              <option value="Aire Acondicionado">Aire Acondicionado</option>
+              <option value="Motor y Afinación">Motor y Afinación</option>
+            </select>
           </div>
           <div class="form-group mt-3">
             <label>TELÉFONO DE CONTACTO</label>
