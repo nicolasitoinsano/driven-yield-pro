@@ -43,6 +43,7 @@ from app.database import get_db
 from app.security import get_current_user
 from app.email_service import send_cita_confirmada
 from app.google_calendar import crear_evento_cita, eliminar_evento_cita, actualizar_evento_cita
+from app.routers.notificaciones import crear_notificacion
 
 router = APIRouter(prefix="/api/citas", tags=["citas"])
 
@@ -289,6 +290,16 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
             WHERE c.id_cita = %s
         """, (new_id,))
         cita = cur.fetchone()
+
+        # [CIT-9] Notificación in-app (dentro del mismo bloque/conexión)
+        crear_notificacion(
+            conn,
+            id_usuario=uid,
+            titulo="Cita agendada con éxito",
+            mensaje=f"Tu cita de {cita['servicio']} quedó registrada para el {cita['fecha']} a las {_format_hora(cita['hora'])}.",
+            tipo="cita_creada",
+            id_referencia=new_id,
+        )
 
     cita = _format_cita(cita)
 

@@ -60,11 +60,10 @@ def crear_servicio(body: ServicioBody, authorization: str = Header(None)):
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO servicio (nombre, categoria, precio, duracion, descripcion, imagen, activo) "
-            "VALUES (%s, %s, %s, %s, %s, %s, 1)",
+            "VALUES (%s, %s, %s, %s, %s, %s, 1) RETURNING id_servicio",
             (body.nombre, body.categoria, body.precio, body.duracion, body.descripcion, body.imagen)
         )
-        conn.commit()
-        new_id = cur.lastrowid
+        new_id = cur.fetchone()["id_servicio"]
     return {"id": new_id, **body.dict()}
 
 

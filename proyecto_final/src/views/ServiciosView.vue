@@ -102,6 +102,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { API_BASE_URL } from '../config/api'
 
 const search = ref('')
 const currentFilter = ref('todos')
@@ -139,7 +140,7 @@ const services = ref([])
 
 async function fetchServices() {
   try {
-    const res = await fetch('http://localhost:8000/api/servicios')
+    const res = await fetch(`${API_BASE_URL}/servicios`)
     if (res.ok) {
       const data = await res.json()
       const customImages = {
