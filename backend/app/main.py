@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 # Cargar variables antes de importar routers
 load_dotenv()
 
-from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
+from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos, notificaciones
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -49,6 +49,7 @@ app.include_router(servicios.router)
 app.include_router(perfil.router)
 app.include_router(practica.router)
 app.include_router(mecanicos.router)
+app.include_router(notificaciones.router)
 
 @app.get("/")
 def root():
@@ -59,7 +60,8 @@ def health():
     from app.database import get_db
     try:
         with get_db() as conn:
-            conn.ping(reconnect=True)
+            with conn.cursor() as cur:
+                cur.execute("SELECT 1")
         return {"status": "ok", "db": "connected"}
     except Exception as exc:
         return {"status": "error", "db": str(exc)}

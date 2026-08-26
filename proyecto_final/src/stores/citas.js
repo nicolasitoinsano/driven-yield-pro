@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useNotificacionesStore } from './notificaciones'
 import { API_BASE_URL, networkErrorMessage, parseApiResponse } from '../config/api'
 
 export const useCitasStore = defineStore('citas', () => {
@@ -42,6 +43,7 @@ export const useCitasStore = defineStore('citas', () => {
       })
       const data = await parseApiResponse(res, 'Error al agendar cita')
       await fetchCitas()
+      useNotificacionesStore().fetchNotificaciones()
       return { ok: true, cita: data }
     } catch (e) {
       error.value = networkErrorMessage(e)

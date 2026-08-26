@@ -24,6 +24,7 @@
         <router-link to="/login" class="btn btn-primary">Iniciar Sesión</router-link>
       </template>
       <template v-else>
+        <NotificationBell v-if="user.role !== 'admin'" />
         <div class="user-menu" ref="menuRef">
           <!-- Avatar trigger -->
           <button class="user-avatar" @click="menuOpen = !menuOpen" :class="{ open: menuOpen }">
@@ -114,18 +115,26 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { storeToRefs } from 'pinia'
+import { useNotificacionesStore } from '../stores/notificaciones'
+import NotificationBell from './NotificationBell.vue'
 
 const auth = useAuthStore()
 const { user } = storeToRefs(auth)
+const notifStore = useNotificacionesStore()
 const router = useRouter()
 const scrolled = ref(false)
 const menuOpen = ref(false)
 const mobileOpen = ref(false)
 const menuRef = ref(null)
+
+watch(user, (u) => {
+  if (u && u.role !== 'admin') notifStore.startPolling()
+  else notifStore.stopPolling()
+}, { immediate: true })
 
 function goTo(path) { menuOpen.value = false; router.push(path) }
 function handleLogout() { menuOpen.value = false; mobileOpen.value = false; auth.logout(); router.push('/') }
