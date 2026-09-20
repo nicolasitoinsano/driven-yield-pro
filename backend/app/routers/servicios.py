@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/servicios", tags=["servicios"])
 # ── Schema ────────────────────────────────────────────────────────────────────
 
 class ServicioBody(BaseModel):
+    """Esquema para la creación y actualización de servicios del taller."""
     nombre: str
     categoria: str
     precio: float
@@ -29,7 +30,8 @@ class ServicioBody(BaseModel):
 
 
 def _format_servicio(row: dict) -> dict:
-    # Decimal → float (evita error de serialización JSON con pymysql)
+    """Formatea campos de precio (Decimal) y duración (timedelta) de un servicio."""
+    # Decimal → float (evita error de serialización JSON)
     if isinstance(row.get("precio"), Decimal):
         row["precio"] = float(row["precio"])
     # timedelta → string legible (e.g. "01:30")
