@@ -34,6 +34,7 @@ router = APIRouter(tags=["practica-guiada"])
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _fmt_hora(value) -> str:
+    """Formatea la hora desde timedelta o datetime a representación en cadena HH:MM."""
     if value is None:
         return ""
     if isinstance(value, dt.timedelta):
@@ -43,12 +44,14 @@ def _fmt_hora(value) -> str:
         return f"{h:02d}:{m:02d}"
     return str(value)
 
-def _fmt_decimal(value):
+def _fmt_decimal(value) -> float | None:
+    """Convierte campos tipo Decimal a float para respuestas en formato JSON."""
     if isinstance(value, Decimal):
         return float(value)
     return value
 
 def _fmt_cita(row: dict) -> dict:
+    """Serializa correctamente tipos de fecha, hora y monto de una cita."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:
