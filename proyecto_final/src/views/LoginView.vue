@@ -226,6 +226,9 @@ const loginForm = reactive({ username: '', password: '' })
 const regForm = reactive({ name: '', email: '', phone: '', username: '', password: '', confirm: '' })
 const adminForm = reactive({ email: '', password: '' })
 
+/**
+ * Procesa el inicio de sesión para usuarios clientes.
+ */
 async function handleLogin() {
   if (!loginForm.username || !loginForm.password) { toast.error('Parámetros incompletos.'); return }
   const res = await auth.login(loginForm.username, loginForm.password)
@@ -234,6 +237,9 @@ async function handleLogin() {
   router.push(auth.user.role === 'admin' ? '/admin' : '/')
 }
 
+/**
+ * Procesa el inicio de sesión exclusivo para administradores del taller.
+ */
 async function handleAdminLogin() {
   if (!adminForm.email || !adminForm.password) { toast.error('Parámetros incompletos.'); return }
   const res = await auth.loginAdmin(adminForm.email, adminForm.password)
