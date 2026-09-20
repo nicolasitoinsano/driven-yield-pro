@@ -7,7 +7,7 @@ backend/
 ├── app/
 │   ├── __init__.py
 │   ├── main.py           # FastAPI app, CORS, middleware
-│   ├── database.py       # Conexión MySQL (PyMySQL)
+│   ├── database.py       # Conexión a PostgreSQL (Supabase / psycopg2)
 │   ├── security.py       # JWT + bcrypt + dependencias de auth
 │   ├── email_service.py  # Envío SMTP y plantillas de correo
 │   └── routers/
@@ -34,11 +34,7 @@ python run.py
 | Variable             | Descripción                          | Default                              |
 |----------------------|--------------------------------------|--------------------------------------|
 | `DRIVEN_YIELD_SECRET`| Clave JWT (¡cambiar en producción!)  | `driven yield_dev_secret_CHANGE_IN_PROD_2026` |
-| `DB_HOST`            | Host MySQL                           | `localhost`                          |
-| `DB_PORT`            | Puerto MySQL                         | `3306`                               |
-| `DB_USER`            | Usuario MySQL                        | `root`                               |
-| `DB_PASSWORD`        | Contraseña MySQL                     | *(vacío)*                            |
-| `DB_NAME`            | Nombre de la base de datos           | `driven_yield1`                      |
+| `SUPABASE_URL`       | Cadena de conexión PostgreSQL        | *(Requerida para Supabase/PostgreSQL)* |
 | `BASE_URL`           | URL base del frontend (correos)      | `http://localhost:5173`              |
 | `CORS_ORIGINS`       | Orígenes CORS separados por coma     | `http://localhost:5173,http://localhost:3000` |
 | `MAIL_HOST`          | Servidor SMTP                        | `smtp.gmail.com`                     |
