@@ -457,6 +457,9 @@ watch(() => form.fecha, async (newFecha) => {
   }
 })
 
+/**
+ * Valida la fase actual y avanza a la siguiente en el asistente de agendamiento.
+ */
 function nextStep() {
   if (currentStep.value === 1 && !form.servicio) { toast.error('Seleccione un módulo técnico.'); return }
   if (currentStep.value === 2) {
@@ -482,6 +485,9 @@ function nextStep() {
   currentStep.value++
 }
 
+/**
+ * Envía los datos del formulario de la cita al store de citas.
+ */
 async function submitForm() {
   const result = await citasStore.agregarCita({
     cliente:  form.cliente || '',
