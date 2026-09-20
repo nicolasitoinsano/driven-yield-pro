@@ -83,6 +83,7 @@ def _format_hora(value) -> str:
 
 
 def _format_cita(row: dict) -> dict:
+    """Formatea la fecha y hora de un registro de cita para la serialización JSON."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:
