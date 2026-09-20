@@ -349,6 +349,9 @@ async function fetchPerfilData() {
   }
 }
 
+/**
+ * Guarda las modificaciones del perfil del usuario y/o actualización de clave en la base de datos.
+ */
 async function saveProfile() {
   if (!editForm.value.nombre || !editForm.value.email) {
     toast.error('Nombre y email son requeridos')
