@@ -286,6 +286,11 @@ const rankingTop3          = computed(() =>
   [...mecanicos.value].sort((a, b) => b.total_generado - a.total_generado).slice(0, 3)
 )
 
+/**
+ * Formatea un valor numérico a moneda COP.
+ * @param {number} v - Valor a formatear
+ * @returns {string} Cadena en formato de moneda colombiana
+ */
 const formatPeso = (v) =>
   new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v || 0)
 
@@ -298,6 +303,9 @@ const badgeEstado = (e) => ({
 
 const headers = () => ({ 'Authorization': `Bearer ${token.value}`, 'Content-Type': 'application/json' })
 
+/**
+ * Carga la lista completa de mecánicos registrados en la base de datos.
+ */
 async function cargarMecanicos() {
   loading.value = true
   error.value   = null
