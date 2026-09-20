@@ -32,6 +32,7 @@ const citasStore = useCitasStore()
 const authStore  = useAuthStore()
 const isAdmin    = computed(() => authStore.isAdmin)
 
+// Contadores reactivos por estado de cita para la barra de estadísticas
 const totalPendientes  = computed(() => citasStore.citas.filter(c => c.estado === "pendiente").length)
 const totalConfirmadas = computed(() => citasStore.citas.filter(c => c.estado === "confirmada").length)
 const totalCompletadas = computed(() => citasStore.citas.filter(c => c.estado === "completada").length)
