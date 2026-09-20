@@ -21,6 +21,7 @@ class EstadoBody(BaseModel):
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _format_hora(value) -> str:
+    """Convierte un valor de hora o timedelta a formato de cadena HH:MM."""
     if value is None:
         return ""
     import datetime
@@ -33,6 +34,7 @@ def _format_hora(value) -> str:
 
 
 def _format_cita_row(row: dict) -> dict:
+    """Formatea la fecha y hora de un registro de cita de administración."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:
