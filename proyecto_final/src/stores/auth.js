@@ -14,6 +14,11 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!token.value && !!user.value)
   const isAdmin    = computed(() => user.value?.role === 'admin')
 
+  /**
+   * Normaliza los campos del usuario para mantener consistencia en la interfaz.
+   * @param {Object} data - Datos del usuario retornados por el backend
+   * @returns {Object|null}
+   */
   function normalizeUser(data) {
     if (!data) return null
     return {
@@ -25,6 +30,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Retorna los encabezados HTTP estándar con el token de autorización si existe.
+   * @returns {Object} Encabezados HTTP
+   */
   function authHeaders() {
     return {
       'Content-Type': 'application/json',
