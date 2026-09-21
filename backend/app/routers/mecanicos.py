@@ -50,6 +50,7 @@ def _fmt_cita(row: dict) -> dict:
 
 @router.get("")
 def get_mecanicos():
+    """Retorna el listado completo de mecánicos activos junto con sus métricas de citas."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
@@ -82,6 +83,7 @@ def get_mecanicos():
 
 @router.get("/ranking")
 def get_ranking(authorization: str = Header(None)):
+    """Obtiene el ranking de rendimiento de mecánicos ordenado por total generado."""
     get_current_user(authorization)
 
     with get_db() as conn:
@@ -130,6 +132,7 @@ def get_ranking(authorization: str = Header(None)):
 
 @router.get("/{mecanico_id}")
 def get_mecanico(mecanico_id: int):
+    """Obtiene el detalle individual de un mecánico por su identificador."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("""
@@ -148,6 +151,7 @@ def get_mecanico(mecanico_id: int):
 
 @router.get("/{mecanico_id}/ingresos")
 def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
+    """Obtiene el historial detallado de citas e ingresos asociados a un mecánico."""
     get_current_user(authorization)
 
     with get_db() as conn:
@@ -218,6 +222,7 @@ def get_ingresos(mecanico_id: int, authorization: str = Header(None)):
 
 @router.post("")
 def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
+    """Crea un nuevo registro de mecánico en el sistema (requiere rol admin)."""
     require_admin(authorization)
 
     if not body.nombre.strip():
@@ -253,6 +258,7 @@ def crear_mecanico(body: MecanicoBody, authorization: str = Header(None)):
 
 @router.put("/{mecanico_id}")
 def actualizar_mecanico(mecanico_id: int, body: MecanicoBody, authorization: str = Header(None)):
+    """Actualiza los datos de un mecánico existente (requiere rol admin)."""
     require_admin(authorization)
 
     with get_db() as conn:
@@ -280,6 +286,7 @@ def actualizar_mecanico(mecanico_id: int, body: MecanicoBody, authorization: str
 
 @router.delete("/{mecanico_id}")
 def eliminar_mecanico(mecanico_id: int, authorization: str = Header(None)):
+    """Desactiva lógicamente a un mecánico (requiere rol admin)."""
     require_admin(authorization)
 
     with get_db() as conn:
