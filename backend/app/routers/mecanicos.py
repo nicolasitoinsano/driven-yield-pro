@@ -23,10 +23,12 @@ class MecanicoBody(BaseModel):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _fmt_decimal(val):
+def _fmt_decimal(val) -> float:
+    """Convierte objetos Decimal de base de datos a float para respuesta JSON."""
     return float(val) if isinstance(val, Decimal) else (val or 0.0)
 
 def _fmt_hora(value) -> str:
+    """Convierte timedelta a formato de cadena HH:MM."""
     if value is None:
         return ""
     if isinstance(value, dt.timedelta):
@@ -37,6 +39,7 @@ def _fmt_hora(value) -> str:
     return str(value)
 
 def _fmt_cita(row: dict) -> dict:
+    """Formatea la fecha, hora y monto de una cita asignada a un mecánico."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:

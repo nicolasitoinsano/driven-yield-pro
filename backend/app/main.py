@@ -51,16 +51,19 @@ app.include_router(practica.router)
 app.include_router(mecanicos.router)
 app.include_router(notificaciones.router)
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 def root():
+    """Endpoint raíz que retorna la versión actual de la API."""
     return {"status": "ok", "api": "driven yield Pro v2.0"}
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 def health():
+    """Verifica el estado del servicio y la conectividad con PostgreSQL."""
     from app.database import get_db
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
+                cur.execute("SELECT 1;")
                 cur.execute("SELECT 1")
         return {"status": "ok", "db": "connected"}
     except Exception as exc:

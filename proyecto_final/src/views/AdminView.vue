@@ -451,6 +451,12 @@ const modalServicio = reactive({
 // Ingresos Filter state
 const ingresosFiltro = ref('mes')
 
+/**
+ * Determina si dos fechas pertenecen a la misma semana natural.
+ * @param {Date} d1 - Primera fecha
+ * @param {Date} d2 - Segunda fecha
+ * @returns {boolean} True si coinciden en la misma semana
+ */
 function isSameWeek(d1, d2) {
   const diff = d1 - d2;
   return diff >= 0 && diff < 7 * 24 * 60 * 60 * 1000;

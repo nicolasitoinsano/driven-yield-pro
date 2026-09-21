@@ -160,12 +160,16 @@ const glowStyle = computed(() => ({
   transform: 'translate(-50%, -50%)'
 }))
 
+/** Guarda la posición actual de desplazamiento vertical. */
 const onScroll = () => { scrollY.value = window.scrollY }
+
+/** Guarda las coordenadas del cursor del ratón para efectos de resplandor y paralaje. */
 const handleMouseMove = (e) => {
   rawMouseX.value = e.clientX
   rawMouseY.value = e.clientY
 }
 
+/** Desplaza suavemente la vista hasta la sección de características. */
 const scrollToFeatures = () => {
   const el = document.getElementById('features')
   if (el) el.scrollIntoView({ behavior: 'smooth' })

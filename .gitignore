@@ -1,6 +1,7 @@
 # Entornos virtuales
 venv/
 backend/venv/
+.venv/
 
 # Variables de entorno (credenciales)
 
@@ -8,11 +9,18 @@ backend/venv/
 __pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Node
+# Node & Build
 node_modules/
+dist/
+.vite/
 
-# Sistema
+# IDE & OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
 

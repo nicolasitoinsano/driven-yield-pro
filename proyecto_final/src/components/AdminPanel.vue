@@ -742,10 +742,20 @@ function eliminarServicio(id) {
 }
 
 // ==================== UTILS ====================
+/**
+ * Formatea una fecha YYYY-MM-DD a representación localizada en español.
+ * @param {string} fecha - Cadena de fecha en formato ISO/YYYY-MM-DD
+ * @returns {string} Fecha formateada en español
+ */
 function formatFecha(fecha) {
   return new Date(fecha + 'T12:00:00').toLocaleDateString('es')
 }
 
+/**
+ * Formatea un monto numérico a moneda COP abreviada.
+ * @param {number} n - Monto numérico
+ * @returns {string} Cadena formateada
+ */
 function fmtCOP(n) {
   if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M'
   if (n >= 1000) return '$' + (n / 1000).toFixed(0) + 'K'

@@ -138,6 +138,9 @@ const filters = [
 
 const services = ref([])
 
+/**
+ * Consulta el catálogo de servicios desde la API del backend.
+ */
 async function fetchServices() {
   try {
     const res = await fetch(`${API_BASE_URL}/servicios`)

@@ -41,6 +41,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class LoginBody(BaseModel):
+    """Esquema para la solicitud de inicio de sesión de usuario."""
     username:   str
     contrasena: str
 
@@ -53,6 +54,7 @@ class LoginBody(BaseModel):
 
 
 class RegisterBody(BaseModel):
+    """Esquema para el registro de nuevos usuarios en el sistema."""
     nombre:     str
     username:   str
     email:      str

@@ -1,5 +1,15 @@
+/**
+ * URL base para las peticiones a la API del backend.
+ */
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://localhost:8000/api').replace(/\/$/, '')
 
+/**
+ * Parsea la respuesta HTTP recibida y lanza un error descriptivo si el estatus no es OK.
+ * 
+ * @param {Response} res - Objeto Response retornado por fetch
+ * @param {string} fallbackMessage - Mensaje por defecto en caso de error
+ * @returns {Promise<any>} Objeto JSON parseado
+ */
 export async function parseApiResponse(res, fallbackMessage = 'Error en la solicitud') {
   let data = null
 
@@ -26,6 +36,12 @@ export async function parseApiResponse(res, fallbackMessage = 'Error en la solic
   return data
 }
 
+/**
+ * Retorna un mensaje de error amigable para el usuario según el estatus o tipo de error.
+ * 
+ * @param {Error|any} error - Objeto de error capturado
+ * @returns {string} Mensaje de error formateado
+ */
 export function networkErrorMessage(error) {
   if (error?.status === 401) return 'Tu sesión expiró. Inicia sesión nuevamente.'
   if (!error?.status && error instanceof TypeError) {

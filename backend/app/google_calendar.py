@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'service_account.json')
 
-def get_calendar_service():
+def get_calendar_service() -> any:
     """
     Autentica y retorna el servicio de Google Calendar usando una Service Account.
     Retorna None si el archivo service_account.json no existe.

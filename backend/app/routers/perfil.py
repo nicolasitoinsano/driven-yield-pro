@@ -38,6 +38,7 @@ router = APIRouter(prefix="/api/perfil", tags=["perfil"])
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class UpdatePerfilBody(BaseModel):
+    """Esquema para la actualización de datos del perfil de usuario o contraseña."""
     nombre:            Optional[str] = None
     email:             Optional[str] = None
     telefono:          Optional[str] = None

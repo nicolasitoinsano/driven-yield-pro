@@ -10,6 +10,10 @@ export const useCitasStore = defineStore('citas', () => {
   const loading = ref(false)
   const error   = ref(null)
 
+  /**
+   * Retorna los encabezados HTTP con token de autenticación.
+   * @returns {Object} Encabezados HTTP
+   */
   function headers() {
     const auth = useAuthStore()
     return {
@@ -18,6 +22,10 @@ export const useCitasStore = defineStore('citas', () => {
     }
   }
 
+  /**
+   * Retorna la URL del endpoint de citas según el rol de usuario.
+   * @returns {string} URL del endpoint
+   */
   function citasUrl() {
     const auth = useAuthStore()
     return auth.isAdmin ? `${API_BASE_URL}/admin/citas` : `${API_BASE_URL}/citas`

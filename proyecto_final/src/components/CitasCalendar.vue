@@ -79,11 +79,18 @@ watch(() => citasStore.citas, (newCitas) => {
     extendedProps: { cliente: c.cliente, vehiculo: c.vehiculo, fecha: c.fecha, hora: c.hora, notas: c.notas, monto: c.monto, estado: c.estado },
   }))
 }, { deep: true, immediate: true })
+/**
+ * Maneja el clic en un evento del calendario abriendo el modal de detalle.
+ */
 function handleEventClick({ event }) {
   citaSeleccionada.value = event
   nuevoEstado.value = event.extendedProps.estado
 }
+
+/** Cierra el modal de detalle de cita. */
 function cerrarModal() { citaSeleccionada.value = null }
+
+/** Actualiza el estado de la cita seleccionada en el backend. */
 async function cambiarEstado() {
   if (!citaSeleccionada.value || cargando.value) return
   cargando.value = true
@@ -91,6 +98,8 @@ async function cambiarEstado() {
   cargando.value = false
   cerrarModal()
 }
+
+/** Elimina la cita seleccionada del sistema. */
 async function eliminarEsta() {
   if (!citaSeleccionada.value || cargando.value) return
   cargando.value = true
@@ -98,6 +107,8 @@ async function eliminarEsta() {
   cargando.value = false
   cerrarModal()
 }
+
+/** Cancela la cita solicitada por el usuario cliente. */
 async function cancelarEsta() {
   if (!citaSeleccionada.value || cargando.value) return
   cargando.value = true

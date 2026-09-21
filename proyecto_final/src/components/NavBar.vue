@@ -28,7 +28,7 @@
         <div class="user-menu" ref="menuRef">
           <!-- Avatar trigger -->
           <button class="user-avatar" @click="menuOpen = !menuOpen" :class="{ open: menuOpen }">
-            <span class="avatar-letter">{{ user.nombre.charAt(0).toUpperCase() }}</span>
+            <span class="avatar-letter">{{ (user?.nombre || user?.username || 'U').charAt(0).toUpperCase() }}</span>
             <span class="avatar-ring"></span>
           </button>
 
@@ -37,7 +37,7 @@
             <div v-if="menuOpen" class="user-dropdown matte-card">
               <!-- Header -->
               <div class="dropdown-header">
-                <div class="dh-avatar">{{ user.nombre.charAt(0).toUpperCase() }}</div>
+                <div class="dh-avatar">{{ (user?.nombre || user?.username || 'U').charAt(0).toUpperCase() }}</div>
                 <div class="dh-info">
                   <span class="dh-name">{{ user.nombre }}</span>
                   <span class="dh-role">
