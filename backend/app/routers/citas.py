@@ -205,6 +205,7 @@ def get_disponibilidad(fecha: str, authorization: str = Header(None)):
 
 @router.get("/mecanicos")
 def get_mecanicos_disponibles(authorization: str = Header(None)):
+    """Retorna la lista de mecánicos que actualmente tienen disponibilidad marcada."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id_mecanico, nombre, especialidad FROM mecanico WHERE disponible = 1")
@@ -218,6 +219,7 @@ def get_mecanicos_disponibles(authorization: str = Header(None)):
 
 @router.get("")
 def get_mis_citas(authorization: str = Header(None)):
+    """Obtiene la lista de citas activas asociadas al cliente autenticado."""
     payload = get_current_user(authorization)
     uid = payload["sub"]
     with get_db() as conn:
@@ -250,6 +252,7 @@ def get_mis_citas(authorization: str = Header(None)):
 
 @router.post("")
 def crear_cita(body: CitaBody, authorization: str = Header(None)):
+    """Crea y registra una nueva cita para el cliente autenticado, asignando mecánico y sincronizando."""
     payload = get_current_user(authorization)
     uid = payload["sub"]
 
@@ -316,6 +319,7 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
 @router.put("/{cita_id}/estado")
 @router.patch("/{cita_id}/estado")
 def update_estado(cita_id: int, body: EstadoBody, authorization: str = Header(None)):
+    """Actualiza el estado de una cita (clientes solo pueden cancelar su propia cita)."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role")
@@ -369,6 +373,7 @@ def update_estado(cita_id: int, body: EstadoBody, authorization: str = Header(No
 
 @router.put("/{cita_id}")
 def editar_cita(cita_id: int, body: CitaBody, authorization: str = Header(None)):
+    """Modifica los detalles de una cita existente con validación de permisos."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role")
@@ -417,6 +422,7 @@ def editar_cita(cita_id: int, body: CitaBody, authorization: str = Header(None))
 
 @router.delete("/{cita_id}")
 def eliminar_cita(cita_id: int, authorization: str = Header(None)):
+    """Elimina permanentemente una cita y su historial relacionado."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role")
