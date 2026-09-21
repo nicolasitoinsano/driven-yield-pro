@@ -22,6 +22,10 @@ DB_CONFIG = {
 
 
 def get_connection() -> pymysql.connections.Connection:
+    """
+    Establece y retorna una conexión directa a la base de datos MySQL
+    utilizando la configuración definida en DB_CONFIG.
+    """
     return pymysql.connect(**DB_CONFIG)
 
 
