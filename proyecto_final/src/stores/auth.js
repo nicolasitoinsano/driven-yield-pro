@@ -63,6 +63,9 @@ export const useAuthStore = defineStore('auth', () => {
     return initPromise
   }
 
+  /**
+   * Registra un nuevo usuario cliente y guarda la sesión automáticamente.
+   */
   async function register(nombre, username, email, contrasena, telefono = '') {
     loading.value = true; error.value = null
     try {
@@ -80,6 +83,9 @@ export const useAuthStore = defineStore('auth', () => {
     } finally { loading.value = false }
   }
 
+  /**
+   * Inicia sesión como cliente con nombre de usuario o email.
+   */
   async function login(username, contrasena) {
     loading.value = true; error.value = null
     try {
@@ -97,6 +103,9 @@ export const useAuthStore = defineStore('auth', () => {
     } finally { loading.value = false }
   }
 
+  /**
+   * Inicia sesión en el portal de administración con credenciales de admin.
+   */
   async function loginAdmin(email, contrasena) {
     loading.value = true; error.value = null
     try {
