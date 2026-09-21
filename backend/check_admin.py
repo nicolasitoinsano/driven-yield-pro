@@ -1,3 +1,7 @@
+"""
+Script de utilidad para comprobar la existencia de un administrador en la BD
+y crear uno por defecto o resetear credenciales de acceso inicial.
+"""
 import pymysql
 import os
 from passlib.context import CryptContext
