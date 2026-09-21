@@ -29,6 +29,7 @@ class ServicioBody(BaseModel):
 
 
 def _format_servicio(row: dict) -> dict:
+    """Formatea los campos del servicio convirtiendo Decimal a float y duración a string."""
     # Decimal → float (evita error de serialización JSON con pymysql)
     if isinstance(row.get("precio"), Decimal):
         row["precio"] = float(row["precio"])
@@ -44,6 +45,7 @@ def _format_servicio(row: dict) -> dict:
 
 @router.get("")
 def get_servicios():
+    """Retorna la lista de todos los servicios automotrices activos."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -55,6 +57,7 @@ def get_servicios():
 
 @router.post("")
 def crear_servicio(body: ServicioBody, authorization: str = Header(None)):
+    """Crea un nuevo servicio en el catálogo (requiere rol admin)."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -70,6 +73,7 @@ def crear_servicio(body: ServicioBody, authorization: str = Header(None)):
 
 @router.put("/{servicio_id}")
 def actualizar_servicio(servicio_id: int, body: ServicioBody, authorization: str = Header(None)):
+    """Actualiza la información de un servicio existente (requiere rol admin)."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -87,6 +91,7 @@ def actualizar_servicio(servicio_id: int, body: ServicioBody, authorization: str
 
 @router.delete("/{servicio_id}")
 def eliminar_servicio(servicio_id: int, authorization: str = Header(None)):
+    """Desactiva un servicio del catálogo mediante baja lógica (requiere rol admin)."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -100,6 +105,7 @@ def eliminar_servicio(servicio_id: int, authorization: str = Header(None)):
 
 @router.post("/seed")
 def seed_servicios():
+    """Siembra los servicios base iniciales en caso de no existir."""
     nuevos = [
         ("Mantenimiento de Motor", "Mantenimiento", 150000, "120 min", "Revisión general y afinación del motor"),
         ("Cambio de Aceite y Filtro", "Mantenimiento", 80000, "45 min", "Cambio de aceite multigrado y filtro nuevo"),
