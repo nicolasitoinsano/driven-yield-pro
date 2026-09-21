@@ -7,3 +7,5 @@
 
 - Verificacion de dependencias en requirements.txt y package.json.
 
+- Finalizacion de pruebas y preparacion de rama para integracion.
+
