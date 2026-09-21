@@ -44,6 +44,7 @@ def _format_cita_row(row: dict) -> dict:
 
 @router.post("/login")
 def admin_login(body: AdminLoginBody):
+    """Autentica a un administrador del sistema y genera un token JWT con rol admin."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -76,6 +77,7 @@ def admin_login(body: AdminLoginBody):
 
 @router.get("/setup")
 def setup_admin():
+    """Ruta auxiliar para inicializar o restablecer la cuenta de administrador por defecto."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id_admin, email FROM administrador LIMIT 1")
@@ -95,6 +97,7 @@ def setup_admin():
 
 @router.get("/citas")
 def get_all_citas(authorization: str = Header(None)):
+    """Retorna todas las citas registradas en el taller para el panel de administración."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -128,6 +131,7 @@ def get_all_citas(authorization: str = Header(None)):
 
 @router.get("/usuarios")
 def get_usuarios(authorization: str = Header(None)):
+    """Lista todos los clientes registrados y activos en el taller."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -142,6 +146,7 @@ def get_usuarios(authorization: str = Header(None)):
 
 @router.get("/usuarios/{uid}")
 def get_usuario_detalle(uid: int, authorization: str = Header(None)):
+    """Obtiene información detallada de un usuario incluyendo sus vehículos y citas."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -184,6 +189,7 @@ def get_usuario_detalle(uid: int, authorization: str = Header(None)):
 
 @router.delete("/usuarios/{uid}")
 def delete_usuario(uid: int, authorization: str = Header(None)):
+    """Desactiva lógicamente la cuenta de un usuario (soft delete)."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -198,6 +204,7 @@ def delete_usuario(uid: int, authorization: str = Header(None)):
 
 @router.get("/stats")
 def get_stats(authorization: str = Header(None)):
+    """Calcula las estadísticas globales del taller (usuarios, citas e ingresos totales)."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
@@ -230,6 +237,7 @@ def get_stats(authorization: str = Header(None)):
 
 @router.put("/citas/{cita_id}/estado")
 def update_estado_admin(cita_id: int, body: EstadoBody, authorization: str = Header(None)):
+    """Permite al administrador modificar el estado de cualquier cita."""
     require_admin(authorization)
     estados_validos = {"pendiente", "confirmada", "completada", "cancelada"}
     if body.estado not in estados_validos:
@@ -250,6 +258,7 @@ def update_estado_admin(cita_id: int, body: EstadoBody, authorization: str = Hea
 
 @router.delete("/citas/{cita_id}")
 def delete_cita_admin(cita_id: int, authorization: str = Header(None)):
+    """Permite al administrador eliminar permanentemente una cita y su historial."""
     require_admin(authorization)
     with get_db() as conn:
         cur = conn.cursor()
