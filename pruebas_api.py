@@ -50,3 +50,5 @@ if __name__ == "__main__":
 
 # Pruebas de diagnostico y validacion de endpoints (Duvan)
 
+# Validacion de formato de respuestas JSON y codigos de estado
+
