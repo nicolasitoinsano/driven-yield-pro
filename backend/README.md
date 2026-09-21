@@ -16,6 +16,7 @@ backend/
 │       ├── citas.py      # /api/citas/*
 │       ├── servicios.py  # /api/servicios
 │       ├── perfil.py     # /api/perfil
+│       ├── mecanicos.py  # /api/mecanicos
 │       └── practica.py   # /api/practica-guiada (ejercicios)
 ├── run.py
 └── requirements.txt

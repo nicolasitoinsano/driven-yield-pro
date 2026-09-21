@@ -1,3 +1,7 @@
+"""
+Script para actualización y siembra del catálogo de servicios premium en la base de datos.
+Permite insertar servicios que no existan previamente sin alterar los existentes.
+"""
 import pymysql
 import os
 from dotenv import load_dotenv

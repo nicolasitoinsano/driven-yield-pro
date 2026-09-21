@@ -31,6 +31,9 @@ export const useCitasStore = defineStore('citas', () => {
     return auth.isAdmin ? `${API_BASE_URL}/admin/citas` : `${API_BASE_URL}/citas`
   }
 
+  /**
+   * Obtiene la lista de citas desde la API (diferenciando admin de cliente).
+   */
   async function fetchCitas() {
     loading.value = true; error.value = null
     try {
@@ -41,6 +44,9 @@ export const useCitasStore = defineStore('citas', () => {
     } finally { loading.value = false }
   }
 
+  /**
+   * Envía una solicitud para agendar una nueva cita en el taller.
+   */
   async function agregarCita(datos) {
     loading.value = true; error.value = null
     try {
@@ -59,6 +65,9 @@ export const useCitasStore = defineStore('citas', () => {
     } finally { loading.value = false }
   }
 
+  /**
+   * Modifica el estado actual de una cita (e.g. pendiente, confirmada, cancelada).
+   */
   async function actualizarEstado(citaId, estado) {
     try {
       const res = await fetch(`${API_BASE_URL}/citas/${citaId}/estado`, {
@@ -74,6 +83,9 @@ export const useCitasStore = defineStore('citas', () => {
     }
   }
 
+  /**
+   * Cancela o elimina permanentemente una cita agendada.
+   */
   async function eliminarCita(citaId) {
     try {
       const res = await fetch(`${API_BASE_URL}/citas/${citaId}`, {

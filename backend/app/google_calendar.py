@@ -125,10 +125,11 @@ def buscar_evento_cita(service, cita_data):
         logger.error(f"Error al buscar evento: {str(e)}")
         return None
 
-def eliminar_evento_cita(cita_data):
-    """Elimina el evento de Google Calendar."""
+def eliminar_evento_cita(cita_data: dict) -> bool:
+    """Elimina el evento correspondiente a la cita en Google Calendar si existe."""
     service = get_calendar_service()
-    if not service: return False
+    if not service:
+        return False
     
     event_id = buscar_evento_cita(service, cita_data)
     if event_id:
@@ -141,10 +142,11 @@ def eliminar_evento_cita(cita_data):
             return False
     return False
 
-def actualizar_evento_cita(cita_antigua, cita_nueva):
-    """Actualiza un evento existente en Google Calendar."""
+def actualizar_evento_cita(cita_antigua: dict, cita_nueva: dict) -> bool:
+    """Actualiza la fecha, hora o descripción de un evento existente en Google Calendar."""
     service = get_calendar_service()
-    if not service: return False
+    if not service:
+        return False
     
     event_id = buscar_evento_cita(service, cita_antigua)
     if event_id:

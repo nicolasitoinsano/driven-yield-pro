@@ -147,6 +147,7 @@ def _ensure_password_reset_table(cur) -> None:
 
 @router.post("/login")
 def login(body: LoginBody):
+    """Autentica a un usuario por username/email y contraseña, generando un token JWT."""
     # [AUTH-2] Todo dentro del mismo bloque de conexión
     with get_db() as conn:
         cur = conn.cursor()
@@ -172,6 +173,7 @@ def login(body: LoginBody):
 
 @router.post("/register")
 def register(body: RegisterBody):
+    """Registra un nuevo usuario en la base de datos y envía correo de bienvenida."""
     # [AUTH-1] Un solo bloque de conexión para todo el flujo
     with get_db() as conn:
         cur = conn.cursor()
@@ -211,6 +213,7 @@ def register(body: RegisterBody):
 
 @router.get("/me")
 def me(authorization: str = Header(None)):
+    """Obtiene el perfil e información del usuario autenticado (cliente o admin)."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role", "cliente")
@@ -253,6 +256,7 @@ def me(authorization: str = Header(None)):
 
 @router.post("/logout")
 def logout():
+    """Cierra la sesión del usuario (del lado cliente se descarta el token JWT)."""
     # JWT es stateless; el cliente elimina el token local
     return {"ok": True}
 
@@ -299,6 +303,7 @@ def forgot_password(body: ForgotBody):
 
 @router.post("/reset-password")
 def reset_password(body: ResetBody):
+    """Restablece la contraseña del usuario utilizando un token de recuperación válido."""
     with get_db() as conn:
         cur = conn.cursor()
         cur.execute(

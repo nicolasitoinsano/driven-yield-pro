@@ -27,7 +27,7 @@
         <NotificationBell v-if="user.role !== 'admin'" />
         <div class="user-menu" ref="menuRef">
           <!-- Avatar trigger -->
-          <button class="user-avatar" @click="menuOpen = !menuOpen" :class="{ open: menuOpen }">
+          <button class="user-avatar" @click="menuOpen = !menuOpen" :class="{ open: menuOpen }" aria-label="Menú de usuario" title="Opciones de perfil">
             <span class="avatar-letter">{{ (user?.nombre || user?.username || 'U').charAt(0).toUpperCase() }}</span>
             <span class="avatar-ring"></span>
           </button>

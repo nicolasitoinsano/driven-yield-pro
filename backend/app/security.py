@@ -29,12 +29,14 @@ def create_token(payload: dict) -> str:
     return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
 
 def decode_token(token: str) -> dict:
+    """Decodifica y valida un token JWT. Lanza HTTPException 401 si es inválido o expiró."""
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], options={"verify_sub": False})
     except JWTError:
         raise HTTPException(status_code=401, detail="Token invalido o expirado")
 
 def get_current_user(authorization: str | None) -> dict:
+    """Extrae y valida el usuario actual a partir del header de autorización Bearer."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="No autenticado")
     token   = authorization.split(" ", 1)[1].strip()
@@ -45,6 +47,7 @@ def get_current_user(authorization: str | None) -> dict:
     return payload
 
 def require_admin(authorization: str | None) -> dict:
+    """Verifica que el usuario autenticado cuente con el rol de administrador."""
     user = get_current_user(authorization)
     if user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Acceso solo para administradores")

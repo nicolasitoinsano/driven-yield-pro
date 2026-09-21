@@ -64,6 +64,7 @@ def _fmt_hora(value) -> str:
 
 @router.get("")
 def get_perfil(authorization: str = Header(None)):
+    """Obtiene el perfil del usuario actual junto con sus vehículos asociados y citas recientes."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role", "cliente")
@@ -129,6 +130,7 @@ def get_perfil(authorization: str = Header(None)):
 
 @router.put("")
 def update_perfil(body: UpdatePerfilBody, authorization: str = Header(None)):
+    """Actualiza la información personal, email o contraseña del usuario autenticado."""
     payload = get_current_user(authorization)
     uid  = payload["sub"]
     role = payload.get("role", "cliente")
@@ -217,6 +219,7 @@ class VehiculoBody(BaseModel):
 
 @router.post("/vehiculos")
 def create_vehiculo(body: VehiculoBody, authorization: str = Header(None)):
+    """Registra un nuevo vehículo en la cuenta del cliente autenticado."""
     payload = get_current_user(authorization)
     uid = payload["sub"]
     role = payload.get("role", "cliente")

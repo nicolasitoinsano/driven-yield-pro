@@ -3,11 +3,17 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+<<<<<<< HEAD
+load_dotenv()
+
+from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
+=======
 
 # Cargar variables antes de importar routers
 load_dotenv()
 
 from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos, notificaciones
+>>>>>>> origin/main
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -58,13 +64,12 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health():
-    """Verifica el estado del servicio y la conectividad con PostgreSQL."""
+    """Verifica el estado del servicio y la conectividad con la base de datos."""
     from app.database import get_db
     try:
         with get_db() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1;")
-                cur.execute("SELECT 1")
         return {"status": "ok", "db": "connected"}
     except Exception as exc:
         return {"status": "error", "db": str(exc)}

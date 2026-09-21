@@ -12,21 +12,15 @@ from contextlib import contextmanager
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 
-def get_connection() -> psycopg2.extensions.connection:
+def get_connection():
     """
     Crea y retorna una conexión activa a la base de datos PostgreSQL en Supabase.
-    
-    Returns:
-        psycopg2.extensions.connection: Conexión configurada con RealDictCursor y autocommit habilitado.
     """
     url = os.getenv("SUPABASE_URL", "")
     if not url:
         raise ValueError("La variable SUPABASE_URL no está configurada.")
     
-    conn = psycopg2.connect(url, cursor_factory=psycopg2.extras.RealDictCursor)
-    conn.autocommit = True
-
-    conn = psycopg.connect(SUPABASE_URL, row_factory=dict_row, autocommit=True)
+    conn = psycopg.connect(url, row_factory=dict_row, autocommit=True)
     return conn
 
 
