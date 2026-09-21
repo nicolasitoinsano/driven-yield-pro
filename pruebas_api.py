@@ -47,3 +47,8 @@ if __name__ == "__main__":
     make_request("PATCH", "/servicios")
 
     print("Pruebas finalizadas.")
+
+# Pruebas de diagnostico y validacion de endpoints (Duvan)
+
+# Validacion de formato de respuestas JSON y codigos de estado
+

@@ -26,3 +26,8 @@ Thumbs.db
 
 # Repo anidado (copia accidental)
 driven-yield-pro/
+# Temporales adicionales
+*.log
+*.tmp
+.cache/
+
