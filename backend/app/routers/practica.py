@@ -34,7 +34,7 @@ router = APIRouter(tags=["practica-guiada"])
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _fmt_hora(value) -> str:
-    """Convierte objeto timedelta de MySQL o cadena de tiempo al formato legible HH:MM."""
+    """Convierte objeto timedelta o datetime al formato legible HH:MM."""
     if value is None:
         return ""
     if isinstance(value, dt.timedelta):
@@ -44,14 +44,14 @@ def _fmt_hora(value) -> str:
         return f"{h:02d}:{m:02d}"
     return str(value)
 
-def _fmt_decimal(value):
+def _fmt_decimal(value) -> float | None:
     """Convierte valores de tipo Decimal a flotante estándar para serialización JSON segura."""
     if isinstance(value, Decimal):
         return float(value)
     return value
 
 def _fmt_cita(row: dict) -> dict:
-    """Aplica formato adecuado a fechas, horas y montos en los registros de citas."""
+    """Aplica formato adecuado y serialización a fechas, horas y montos en los registros de citas."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:

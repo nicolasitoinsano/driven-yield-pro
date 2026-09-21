@@ -25,13 +25,18 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-// Guardia de navegación global para proteger rutas según sesión y rol
+/**
+ * Guard de navegación global para verificar la autenticación y roles de usuario.
+ */
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   await auth.init()
 
+  // Redirigir a login si la ruta requiere autenticación y el usuario no ha iniciado sesión
   if (to.meta.requiresAuth && !auth.isLoggedIn) return { name: 'Login' }
+  // Redirigir a inicio si la ruta requiere rol de administrador y el usuario no lo tiene
   if (to.meta.requiresAdmin && auth.user?.role !== 'admin') return { name: 'Home' }
+  // Redirigir fuera de la página de login si ya hay una sesión activa
   if (to.name === 'Login' && auth.isLoggedIn) return auth.user.role === 'admin' ? { name: 'Admin' } : { name: 'Home' }
 })
 

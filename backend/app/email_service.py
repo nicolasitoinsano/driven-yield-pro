@@ -70,7 +70,7 @@ def send_email(to: str, subject: str, html_body: str) -> bool:
 # ── Plantillas de correo ──────────────────────────────────────────────────────
 
 def _base_url() -> str:
-    """Obtiene la URL base de la aplicación frontend desde el entorno."""
+    """Retorna la URL base del frontend para enlaces de notificación por correo."""
     return os.getenv("BASE_URL", "http://localhost:5173").rstrip("/")
 
 

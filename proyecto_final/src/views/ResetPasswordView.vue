@@ -45,6 +45,9 @@ const password = ref('')
 const confirm = ref('')
 const token = computed(() => String(route.query.token || ''))
 
+/**
+ * Valida y procesa el restablecimiento de la contraseña mediante token de recuperación.
+ */
 async function handleReset() {
   if (!token.value) { toast.error('Enlace inválido.'); return }
   if (password.value.length < 6) { toast.error('La contraseña debe tener al menos 6 caracteres.'); return }

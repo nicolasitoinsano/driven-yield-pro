@@ -32,6 +32,7 @@ const citasStore = useCitasStore()
 const authStore  = useAuthStore()
 const isAdmin    = computed(() => authStore.isAdmin)
 
+// Contadores reactivos por estado de cita para la barra de estadísticas
 const totalPendientes  = computed(() => citasStore.citas.filter(c => c.estado === "pendiente").length)
 const totalConfirmadas = computed(() => citasStore.citas.filter(c => c.estado === "confirmada").length)
 const totalCompletadas = computed(() => citasStore.citas.filter(c => c.estado === "completada").length)
@@ -66,7 +67,7 @@ onMounted(() => citasStore.fetchCitas())
 .stat-num   { font-size: 1.8rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: 12px; color: rgba(255,255,255,0.5); }
 
-/* ✅ Corregido: CSS válido con background y colores correctos */
+/* <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> Corregido: CSS válido con background y colores correctos */
 .stat-dot { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
 .dot-pendiente  { background: #f59e0b; }
 .dot-confirmada { background: #534AB7; }

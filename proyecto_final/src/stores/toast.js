@@ -3,13 +3,13 @@ import { reactive } from 'vue'
 const toasts = reactive([])
 
 /**
- * Composable reactivo para la gestión de notificaciones temporales tipo Toast en la interfaz.
+ * Composable para gestionar notificaciones de tipo Toast en la interfaz.
  */
 export function useToast() {
   /**
-   * Muestra un mensaje emergente durante un tiempo determinado.
-   * @param {string} message - Texto de la notificación
-   * @param {'info' | 'success' | 'error'} type - Tipo de notificación
+   * Muestra un nuevo mensaje toast.
+   * @param {string} message - Texto del mensaje
+   * @param {'info'|'success'|'error'} type - Tipo de notificación
    * @param {number} duration - Duración en milisegundos
    */
   function show(message, type = 'info', duration = 3000) {

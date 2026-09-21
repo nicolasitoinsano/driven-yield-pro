@@ -43,6 +43,7 @@ from app.database import get_db
 from app.security import get_current_user
 from app.email_service import send_cita_confirmada
 from app.google_calendar import crear_evento_cita, eliminar_evento_cita, actualizar_evento_cita
+from app.routers.notificaciones import crear_notificacion
 
 router = APIRouter(prefix="/api/citas", tags=["citas"])
 
@@ -83,6 +84,7 @@ def _format_hora(value) -> str:
 
 
 def _format_cita(row: dict) -> dict:
+    """Formatea la fecha y hora de un registro de cita para la serialización JSON."""
     if row.get("fecha"):
         row["fecha"] = str(row["fecha"])
     if "hora" in row:
@@ -123,7 +125,7 @@ def _resolve_or_create_vehiculo(conn, uid: int, body: CitaBody) -> int:
     # Crear vehículo nuevo
     cur.execute(
         """INSERT INTO vehiculo (marca, modelo, año, color, numero_de_placa, id_usuario)
-           VALUES (%s, %s, %s, %s, %s, %s)""",
+           VALUES (%s, %s, %s, %s, %s, %s) RETURNING id_vehiculo""",
         (
             marca,
             modelo,
@@ -133,7 +135,7 @@ def _resolve_or_create_vehiculo(conn, uid: int, body: CitaBody) -> int:
             uid,
         )
     )
-    return cur.lastrowid
+    return cur.fetchone()["id_vehiculo"]
 
 
 def _resolve_servicio(conn, nombre: str):
@@ -173,7 +175,7 @@ def _seleccionar_mecanico_automatico(conn, categoria: str):
             return mec["id_mecanico"]
 
     # Fallback: ningún mecánico con esa especialidad disponible -> cualquiera disponible
-    cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RAND() LIMIT 1")
+    cur.execute("SELECT id_mecanico FROM mecanico WHERE disponible = 1 ORDER BY RANDOM() LIMIT 1")
     mec = cur.fetchone()
     return mec["id_mecanico"] if mec else None
 
@@ -270,10 +272,10 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
         cur.execute(
             """INSERT INTO cita
                (fecha, hora, notas, monto, estado, id_usuario, id_vehiculo, id_servicio, id_mecanico)
-               VALUES (%s, %s, %s, %s, 'pendiente', %s, %s, %s, %s)""",
+               VALUES (%s, %s, %s, %s, 'pendiente', %s, %s, %s, %s) RETURNING id_cita""",
             (body.fecha, body.hora, body.notas, body.monto, uid, vid, sid, mid)
         )
-        new_id = cur.lastrowid
+        new_id = cur.fetchone()["id_cita"]
 
         # Leer la cita recién creada con JOINs
         cur.execute("""
@@ -292,6 +294,16 @@ def crear_cita(body: CitaBody, authorization: str = Header(None)):
             WHERE c.id_cita = %s
         """, (new_id,))
         cita = cur.fetchone()
+
+        # [CIT-9] Notificación in-app (dentro del mismo bloque/conexión)
+        crear_notificacion(
+            conn,
+            id_usuario=uid,
+            titulo="Cita agendada con éxito",
+            mensaje=f"Tu cita de {cita['servicio']} quedó registrada para el {cita['fecha']} a las {_format_hora(cita['hora'])}.",
+            tipo="cita_creada",
+            id_referencia=new_id,
+        )
 
     cita = _format_cita(cita)
 

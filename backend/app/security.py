@@ -9,18 +9,18 @@ ALGORITHM   = "HS256"
 TOKEN_HOURS = 72
 
 def hash_password(plain: str) -> str:
-    """Genera un hash seguro utilizando bcrypt a partir de la contraseña en texto plano."""
+    """Genera un hash seguro bcrypt para la contraseña en texto plano."""
     return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
 
 def verify_password(plain: str, hashed: str) -> bool:
-    """Verifica si la contraseña en texto plano coincide con el hash almacenado."""
+    """Verifica si una contraseña en texto plano coincide con el hash bcrypt almacenado."""
     try:
         return bcrypt.checkpw(plain.encode(), hashed.encode())
     except Exception:
         return False
 
 def create_token(payload: dict) -> str:
-    """Genera un token JWT firmado con fecha de expiración configurada."""
+    """Crea un JSON Web Token (JWT) firmado con vigencia configurada."""
     now  = datetime.now(timezone.utc)
     data = payload.copy()
     data["sub"] = str(data["sub"])

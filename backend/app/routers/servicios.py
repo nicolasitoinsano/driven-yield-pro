@@ -20,6 +20,7 @@ router = APIRouter(prefix="/api/servicios", tags=["servicios"])
 # ── Schema ────────────────────────────────────────────────────────────────────
 
 class ServicioBody(BaseModel):
+    """Esquema para la creación y actualización de servicios del taller."""
     nombre: str
     categoria: str
     precio: float
@@ -30,7 +31,7 @@ class ServicioBody(BaseModel):
 
 def _format_servicio(row: dict) -> dict:
     """Formatea los campos del servicio convirtiendo Decimal a float y duración a string."""
-    # Decimal → float (evita error de serialización JSON con pymysql)
+    # Decimal → float (evita error de serialización JSON)
     if isinstance(row.get("precio"), Decimal):
         row["precio"] = float(row["precio"])
     # timedelta → string legible (e.g. "01:30")
@@ -63,11 +64,10 @@ def crear_servicio(body: ServicioBody, authorization: str = Header(None)):
         cur = conn.cursor()
         cur.execute(
             "INSERT INTO servicio (nombre, categoria, precio, duracion, descripcion, imagen, activo) "
-            "VALUES (%s, %s, %s, %s, %s, %s, 1)",
+            "VALUES (%s, %s, %s, %s, %s, %s, 1) RETURNING id_servicio",
             (body.nombre, body.categoria, body.precio, body.duracion, body.descripcion, body.imagen)
         )
-        conn.commit()
-        new_id = cur.lastrowid
+        new_id = cur.fetchone()["id_servicio"]
     return {"id": new_id, **body.dict()}
 
 

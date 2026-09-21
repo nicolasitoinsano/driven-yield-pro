@@ -1,6 +1,6 @@
 <template>
-  <div class="toast-container">
-    <div v-for="t in toasts" :key="t.id" :class="['toast-item', t.type]">
+  <div class="toast-container" aria-live="polite" aria-atomic="true">
+    <div v-for="t in toasts" :key="t.id" :class="['toast-item', t.type]" role="alert">
       <span>{{ t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ' }}</span>
       {{ t.message }}
     </div>

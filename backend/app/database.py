@@ -1,32 +1,27 @@
 # app/database.py
 # ─────────────────────────────────────────────────────────────────────────────
-# Conexión a MySQL con PyMySQL.
-# Configuración desde variables de entorno.
+# Conexión a PostgreSQL (Supabase) con psycopg (v3).
+# Migrado desde psycopg2-binary porque no hay wheel precompilado para
+# versiones recientes de Python, y compilarlo desde fuente requiere pg_config
+# (PostgreSQL instalado localmente). psycopg v3 sí trae wheels binarios.
 # ─────────────────────────────────────────────────────────────────────────────
 import os
-import pymysql
-import pymysql.cursors
+import psycopg
+from psycopg.rows import dict_row
 from contextlib import contextmanager
 
-DB_CONFIG = {
-    "host":            os.getenv("DB_HOST", "localhost"),
-    "port":            int(os.getenv("DB_PORT", "3306")),
-    "user":            os.getenv("DB_USER", "root"),
-    "password":        os.getenv("DB_PASSWORD", ""),
-    "database":        os.getenv("DB_NAME", "driven_yield1"),
-    "charset":         "utf8mb4",
-    "cursorclass":     pymysql.cursors.DictCursor,
-    "autocommit":      True,
-    "connect_timeout": 10,
-}
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 
-
-def get_connection() -> pymysql.connections.Connection:
+def get_connection():
     """
-    Establece y retorna una conexión directa a la base de datos MySQL
-    utilizando la configuración definida en DB_CONFIG.
+    Crea y retorna una conexión activa a la base de datos PostgreSQL en Supabase.
     """
-    return pymysql.connect(**DB_CONFIG)
+    url = os.getenv("SUPABASE_URL", "")
+    if not url:
+        raise ValueError("La variable SUPABASE_URL no está configurada.")
+    
+    conn = psycopg.connect(url, row_factory=dict_row, autocommit=True)
+    return conn
 
 
 @contextmanager

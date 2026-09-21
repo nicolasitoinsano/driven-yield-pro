@@ -40,9 +40,9 @@
         </div>
 
         <div class="trust-row">
-          <div class="trust-item"><span class="check-icon">✓</span> Conexión Cifrada</div>
-          <div class="trust-item"><span class="check-icon">✓</span> Respaldos en Tiempo Real</div>
-          <div class="trust-item"><span class="check-icon">✓</span> Protocolos de Privacidad</div>
+          <div class="trust-item"><span class="check-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> Conexión Cifrada</div>
+          <div class="trust-item"><span class="check-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> Respaldos en Tiempo Real</div>
+          <div class="trust-item"><span class="check-icon"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg></span> Protocolos de Privacidad</div>
         </div>
       </div>
     </div>
@@ -129,7 +129,11 @@
               </div>
 
               <button class="btn btn-primary btn-full" @click="handleRegister" :disabled="auth.loading" style="margin-top: 1rem;">
-                {{ auth.loading ? 'REGISTRANDO...' : 'REGISTRAR PERFIL →' }}
+                <template v-if="auth.loading">REGISTRANDO...</template>
+                <template v-else>
+                  REGISTRAR PERFIL
+                  <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg>
+                </template>
               </button>
               
               <div class="divider"><span>O</span></div>
@@ -142,7 +146,7 @@
 
           <!-- ADMIN LOGIN -->
           <div v-else-if="panel === 'admin'" key="admin" class="form-box observe-me">
-            <button class="back-btn" @click="panel = 'login'">← Retornar</button>
+            <button class="back-btn" @click="panel = 'login'"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> Retornar</button>
 
             <p class="form-eyebrow" style="margin-top:1.5rem">NIVEL DE PRIVILEGIO: MÁXIMO</p>
             <h1 class="form-title">ACCESO <span>ADMIN</span></h1>
@@ -170,7 +174,7 @@
 
           <!-- FORGOT -->
           <div v-else key="forgot" class="form-box observe-me">
-            <button class="back-btn" @click="panel = 'login'">← Retornar</button>
+            <button class="back-btn" @click="panel = 'login'"><svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/></svg> Retornar</button>
 
             <p class="form-eyebrow" style="margin-top:1.5rem">RECUPERACIÓN DE CLAVE</p>
             <h1 class="form-title">RESTABLECER <span>ACCESO</span></h1>
@@ -226,6 +230,9 @@ const loginForm = reactive({ username: '', password: '' })
 const regForm = reactive({ name: '', email: '', phone: '', username: '', password: '', confirm: '' })
 const adminForm = reactive({ email: '', password: '' })
 
+/**
+ * Procesa el inicio de sesión para usuarios clientes.
+ */
 async function handleLogin() {
   if (!loginForm.username || !loginForm.password) { toast.error('Parámetros incompletos.'); return }
   const res = await auth.login(loginForm.username, loginForm.password)
@@ -234,6 +241,9 @@ async function handleLogin() {
   router.push(auth.user.role === 'admin' ? '/admin' : '/')
 }
 
+/**
+ * Procesa el inicio de sesión exclusivo para administradores del taller.
+ */
 async function handleAdminLogin() {
   if (!adminForm.email || !adminForm.password) { toast.error('Parámetros incompletos.'); return }
   const res = await auth.loginAdmin(adminForm.email, adminForm.password)

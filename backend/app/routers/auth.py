@@ -41,6 +41,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class LoginBody(BaseModel):
+    """Esquema para la solicitud de inicio de sesión de usuario."""
     username:   str
     contrasena: str
 
@@ -53,6 +54,7 @@ class LoginBody(BaseModel):
 
 
 class RegisterBody(BaseModel):
+    """Esquema para el registro de nuevos usuarios en el sistema."""
     nombre:     str
     username:   str
     email:      str
@@ -123,16 +125,21 @@ def _user_response(row: dict, token: str) -> dict:
 def _ensure_password_reset_table(cur) -> None:
     cur.execute("""
         CREATE TABLE IF NOT EXISTS password_reset_tokens (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            id_usuario INT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            id_usuario INT NOT NULL REFERENCES usuario(id_usuario) ON DELETE CASCADE,
             token VARCHAR(128) NOT NULL UNIQUE,
-            expires_at DATETIME NOT NULL,
-            used TINYINT(1) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_password_reset_usuario (id_usuario),
-            INDEX idx_password_reset_token (token),
-            FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
+            expires_at TIMESTAMP NOT NULL,
+            used BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_password_reset_usuario
+        ON password_reset_tokens(id_usuario)
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_password_reset_token
+        ON password_reset_tokens(token)
     """)
 
 
@@ -183,10 +190,10 @@ def register(body: RegisterBody):
 
         cur.execute(
             """INSERT INTO usuario (nombre, username, email, telefono, contrasena)
-               VALUES (%s, %s, %s, %s, %s)""",
+               VALUES (%s, %s, %s, %s, %s) RETURNING id_usuario""",
             (body.nombre, body.username, body.email, body.telefono, hashed)
         )
-        new_id = cur.lastrowid   # [AUTH-1] leído ANTES de cerrar la conexión
+        new_id = cur.fetchone()["id_usuario"]
 
         cur.execute("SELECT * FROM usuario WHERE id_usuario = %s", (new_id,))
         row = cur.fetchone()
@@ -278,12 +285,12 @@ def forgot_password(body: ForgotBody):
             expires_at  = datetime.now(timezone.utc) + timedelta(hours=1)
 
             cur.execute(
-                "UPDATE password_reset_tokens SET used = 1 WHERE id_usuario = %s AND used = 0",
+                "UPDATE password_reset_tokens SET used = TRUE WHERE id_usuario = %s AND used = FALSE",
                 (row["id_usuario"],)
             )
             cur.execute(
                 """INSERT INTO password_reset_tokens (id_usuario, token, expires_at, used)
-                   VALUES (%s, %s, %s, 0)""",
+                   VALUES (%s, %s, %s, FALSE)""",
                 (row["id_usuario"], reset_token, expires_at.strftime("%Y-%m-%d %H:%M:%S"))
             )
             send_recuperacion_contrasena(row["email"], row["nombre"], reset_token)
@@ -323,7 +330,7 @@ def reset_password(body: ResetBody):
             (new_hash, record["id_usuario"])
         )
         cur.execute(
-            "UPDATE password_reset_tokens SET used = 1 WHERE id = %s",
+            "UPDATE password_reset_tokens SET used = TRUE WHERE id = %s",
             (record["id"],)
         )
 

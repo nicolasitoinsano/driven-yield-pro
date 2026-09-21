@@ -2,6 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useAuthStore } from './auth'
+import { useNotificacionesStore } from './notificaciones'
 import { API_BASE_URL, networkErrorMessage, parseApiResponse } from '../config/api'
 
 export const useCitasStore = defineStore('citas', () => {
@@ -9,6 +10,10 @@ export const useCitasStore = defineStore('citas', () => {
   const loading = ref(false)
   const error   = ref(null)
 
+  /**
+   * Retorna los encabezados HTTP con token de autenticación.
+   * @returns {Object} Encabezados HTTP
+   */
   function headers() {
     const auth = useAuthStore()
     return {
@@ -17,6 +22,10 @@ export const useCitasStore = defineStore('citas', () => {
     }
   }
 
+  /**
+   * Retorna la URL del endpoint de citas según el rol de usuario.
+   * @returns {string} URL del endpoint
+   */
   function citasUrl() {
     const auth = useAuthStore()
     return auth.isAdmin ? `${API_BASE_URL}/admin/citas` : `${API_BASE_URL}/citas`
@@ -48,6 +57,7 @@ export const useCitasStore = defineStore('citas', () => {
       })
       const data = await parseApiResponse(res, 'Error al agendar cita')
       await fetchCitas()
+      useNotificacionesStore().fetchNotificaciones()
       return { ok: true, cita: data }
     } catch (e) {
       error.value = networkErrorMessage(e)
