@@ -5,3 +5,5 @@
 
 - Documentacion de endpoints de autenticacion y servicios.
 
+- Verificacion de dependencias en requirements.txt y package.json.
+
