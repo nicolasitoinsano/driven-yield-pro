@@ -1,12 +1,11 @@
-﻿import logging
+import logging
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
 load_dotenv()
 
-from app.routers import auth, admin, citas, servicios, perfil, practica
+from app.routers import auth, admin, citas, servicios, perfil, practica, mecanicos
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,10 +42,12 @@ app.include_router(mecanicos.router)
 
 @app.get("/")
 def root():
+    """Ruta raíz para verificar el estado de la API."""
     return {"status": "ok", "api": "driven yield Pro v2.0"}
 
 @app.get("/health")
 def health():
+    """Ruta de comprobación de salud y conexión a la base de datos."""
     from app.database import get_db
     try:
         with get_db() as conn:
