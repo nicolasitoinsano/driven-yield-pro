@@ -1,10 +1,13 @@
 # app/database.py
 # ─────────────────────────────────────────────────────────────────────────────
-# Conexión a PostgreSQL (Supabase) con psycopg2.
+# Conexión a PostgreSQL (Supabase) con psycopg (v3).
+# Migrado desde psycopg2-binary porque no hay wheel precompilado para
+# versiones recientes de Python, y compilarlo desde fuente requiere pg_config
+# (PostgreSQL instalado localmente). psycopg v3 sí trae wheels binarios.
 # ─────────────────────────────────────────────────────────────────────────────
 import os
-import psycopg2
-import psycopg2.extras
+import psycopg
+from psycopg.rows import dict_row
 from contextlib import contextmanager
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
@@ -22,6 +25,8 @@ def get_connection() -> psycopg2.extensions.connection:
     
     conn = psycopg2.connect(url, cursor_factory=psycopg2.extras.RealDictCursor)
     conn.autocommit = True
+
+    conn = psycopg.connect(SUPABASE_URL, row_factory=dict_row, autocommit=True)
     return conn
 
 
