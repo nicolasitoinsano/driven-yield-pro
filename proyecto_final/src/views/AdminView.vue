@@ -419,6 +419,7 @@ import { useAuthStore } from '../stores/auth'
 import { useCitasStore } from '../stores/citas'
 import { useToast } from '../stores/toast'
 import { API_BASE_URL } from '../config/api'
+import { obtenerEstadisticasDashboard } from '../utils/dashboard'
 
 // FullCalendar imports
 import FullCalendar from '@fullcalendar/vue3'
@@ -590,11 +591,12 @@ async function fetchMecanicos() {
 
 async function fetchStats() {
   loadingStats.value = true
+
   try {
-    const res = await fetch(`${API_BASE_URL}/admin/stats`, { headers: auth.authHeaders() })
-    if (res.ok) {
-      stats.value = await res.json()
-    }
+    stats.value = await obtenerEstadisticasDashboard(
+      API_BASE_URL,
+      auth.authHeaders()
+    )
   } catch (e) {
     console.error(e)
   } finally {
